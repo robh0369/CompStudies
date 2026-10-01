@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>What the Cincinnati region pays</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,400;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#F2F4F3; --card:#FFFFFF; --ink:#16212B; --muted:#56636E; --rule:#D3D9DD;
+  --river:#1C5D74; --river-2:#7FA9B9; --river-3:#D5E3E9; --marker:#8F6400; --warn:#8C5300; --sel:#E7EFF2;
+  --font:"Public Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#10171C; --card:#172128; --ink:#E4EAED; --muted:#9AA8B2; --rule:#2C3A43;
+    --river:#7CC0D8; --river-2:#3F7488; --river-3:#20404C; --marker:#E2B24C; --warn:#E8A84E; --sel:#1D2E36;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#10171C; --card:#172128; --ink:#E4EAED; --muted:#9AA8B2; --rule:#2C3A43;
+  --river:#7CC0D8; --river-2:#3F7488; --river-3:#20404C; --marker:#E2B24C; --warn:#E8A84E; --sel:#1D2E36;
+  color-scheme: dark;
+}
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:inherit}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font);font-size:16px;line-height:1.5;
+  font-variant-numeric:tabular-nums;-webkit-text-size-adjust:100%}
+a{color:var(--river)}
+button,select,input{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--river);outline-offset:2px;border-radius:3px}
+.wrap{max-width:1180px;margin:0 auto;padding:0 20px}
+header.top{padding:28px 0 18px}
+h1{font-size:clamp(1.9rem,4.6vw,3rem);line-height:1.05;letter-spacing:-0.025em;margin:0 0 10px;font-weight:800;max-width:18ch}
+.lede{color:var(--muted);max-width:62ch;margin:0}
+.layout{display:grid;grid-template-columns:minmax(0,1fr);gap:24px;padding-bottom:48px}
+.layout>*{min-width:0}
+@media (min-width:920px){.layout{grid-template-columns:290px minmax(0,1fr);align-items:start}
+  aside.filters{position:sticky;top:calc(16px + env(safe-area-inset-top,0px))}}
+
+/* Filters */
+aside.filters{background:var(--card);border:1px solid var(--rule);border-radius:10px;padding:16px}
+.ftoggle{display:none;width:100%;text-align:left;background:none;border:0;padding:0;font-weight:700;cursor:pointer}
+.ftoggle .sum{display:block;font-weight:400;color:var(--muted);font-size:.9rem;margin-top:2px}
+@media (max-width:919px){.ftoggle{display:block}
+  aside.filters:not(.open) .fbody{display:none}
+  aside.filters.open .fbody{margin-top:14px}}
+.seg{display:grid;grid-template-columns:1fr 1fr;border:1px solid var(--rule);border-radius:8px;overflow:hidden;margin-bottom:14px}
+.seg button{border:0;background:transparent;padding:8px 6px;cursor:pointer;font-size:.88rem;line-height:1.25}
+.seg button[aria-pressed="true"]{background:var(--river);color:var(--card);font-weight:600}
+label.f{display:block;font-size:.85rem;font-weight:600;margin:0 0 12px}
+label.f select{display:block;width:100%;margin-top:4px;padding:8px 10px;border:1px solid var(--rule);border-radius:7px;
+  background:var(--paper);font-weight:400;font-size:.95rem}
+label.f select:disabled{opacity:.5}
+.fnote{font-size:.8rem;color:var(--muted);margin:2px 0 12px}
+.factions{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px}
+.btn{border:1px solid var(--rule);background:var(--paper);border-radius:7px;padding:7px 12px;cursor:pointer;font-size:.88rem}
+.btn:hover{border-color:var(--river)}
+.btn[aria-pressed="true"]{background:var(--sel);border-color:var(--river)}
+.linkbox{display:none;margin-top:8px}
+.linkbox.show{display:block}
+.linkbox input{width:100%;padding:6px 8px;border:1px solid var(--rule);border-radius:6px;background:var(--paper);font-size:.8rem}
+.toast{font-size:.82rem;color:var(--river);min-height:1.2em;margin-top:6px}
+
+/* Sections */
+main section{background:var(--card);border:1px solid var(--rule);border-radius:10px;padding:20px;margin-bottom:20px}
+h2{font-size:1.25rem;margin:0 0 4px;letter-spacing:-0.01em}
+.sub{color:var(--muted);font-size:.92rem;margin:0 0 14px;max-width:70ch}
+.tools{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0 0}
+.head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}
+.head select{padding:7px 10px;border:1px solid var(--rule);border-radius:7px;background:var(--paper)}
+
+/* Hero */
+.hero .big{font-size:clamp(2.8rem,9vw,4.6rem);font-weight:800;letter-spacing:-0.035em;line-height:1;margin:6px 0 8px}
+.hero .big small{font-size:.32em;font-weight:600;letter-spacing:0;color:var(--muted);margin-left:.4em;vertical-align:middle}
+.hero .what{font-size:1.05rem;max-width:60ch;margin:0}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 0}
+.chip{background:var(--sel);border-radius:999px;padding:2px 10px;font-size:.82rem}
+.strip{position:relative;height:46px;margin:30px 0 6px}
+.strip .s{position:absolute;top:10px;height:26px;border-radius:3px}
+.strip .o{background:var(--river-3)}
+.strip .i{background:var(--river-2)}
+.strip .m{top:4px;height:38px;width:3px;margin-left:-1.5px;background:var(--ink);border-radius:1px}
+.strip .e{top:10px;height:26px;background:repeating-linear-gradient(135deg,transparent 0 3px,color-mix(in srgb,var(--ink) 28%,transparent) 3px 5px)}
+.strip .ref{position:absolute;top:-14px;width:14px;height:14px;margin-left:-7px;background:var(--marker);transform:rotate(45deg);border-radius:2px}
+.axis{position:relative;height:18px;font-size:.75rem;color:var(--muted);border-top:1px solid var(--rule)}
+.axis span{position:absolute;top:2px;transform:translateX(-50%);white-space:nowrap}
+.axis span:first-child{transform:none}
+.pct{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin:18px 0 0;padding:0;list-style:none}
+.pct li{border-top:3px solid var(--river-3);padding-top:6px;font-size:.78rem;color:var(--muted)}
+.pct li b{display:block;font-size:1rem;color:var(--ink)}
+.pct li.mid{border-color:var(--ink)}
+.pct li.q{border-color:var(--river-2)}
+.facts{margin:16px 0 0;font-size:.9rem;color:var(--muted);max-width:70ch}
+.facts p{margin:0 0 6px}
+.reflegend{display:flex;align-items:center;gap:8px;font-size:.88rem;margin-top:10px}
+.reflegend i{width:11px;height:11px;background:var(--marker);transform:rotate(45deg);display:inline-block;border-radius:2px;flex:none}
+.warnline{color:var(--warn);font-weight:600}
+.empty{padding:18px;border:1px dashed var(--rule);border-radius:8px;color:var(--muted)}
+
+/* Range rows */
+.rows{list-style:none;margin:0;padding:0}
+.rows li{padding:8px 6px;border-top:1px solid var(--rule)}
+.rows li:first-child{border-top:0}
+.rows li.sel{background:var(--sel);border-radius:6px}
+.rows li.click{cursor:pointer}
+.rows li.click:hover .nm{text-decoration:underline}
+.rl{display:flex;justify-content:space-between;gap:10px;font-size:.9rem;align-items:baseline}
+.rl .nm{font-weight:600;min-width:0;overflow-wrap:anywhere}
+.rl .v{white-space:nowrap;text-align:right}
+.rl .v small{color:var(--muted);font-size:.78rem;margin-left:4px}
+.bar{position:relative;height:12px;margin-top:5px}
+.bar .s{position:absolute;top:0;height:12px;border-radius:2px}
+.bar .o{background:var(--river-3)} .bar .i{background:var(--river-2)}
+.bar .m{width:2px;margin-left:-1px;background:var(--ink);top:-2px;height:16px}
+.bar .e{background:repeating-linear-gradient(135deg,transparent 0 2px,color-mix(in srgb,var(--ink) 28%,transparent) 2px 4px)}
+.rows li.caut .bar{opacity:.6}
+.flag{color:var(--warn);font-size:.78rem;font-weight:600;margin-left:6px;white-space:nowrap}
+.supp{font-size:.82rem;color:var(--muted);margin-top:2px}
+.legend{display:flex;flex-wrap:wrap;gap:14px;font-size:.78rem;color:var(--muted);margin:2px 0 10px}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{display:inline-block;width:18px;height:9px;border-radius:2px}
+
+/* Tables */
+.tablewrap{overflow-x:auto;margin-top:12px;display:none}
+.tablewrap.show{display:block}
+table{border-collapse:collapse;font-size:.84rem;min-width:100%}
+th,td{padding:6px 8px;border-bottom:1px solid var(--rule);text-align:right;white-space:nowrap}
+th:first-child,td:first-child{text-align:left}
+th{font-weight:600;color:var(--muted)}
+.reftable{display:block}
+
+/* Methodology */
+details.method summary{cursor:pointer;font-weight:700;font-size:1.1rem}
+details.method h3{font-size:1rem;margin:20px 0 4px}
+details.method p,details.method li{font-size:.92rem;max-width:72ch}
+details.method code{font-size:.85em;background:var(--sel);padding:1px 4px;border-radius:4px}
+footer{color:var(--muted);font-size:.82rem;padding:0 0 40px}
+@media (max-width:520px){ .wrap{padding:0 14px} main section{padding:16px} .pct li b{font-size:.88rem} }
+@media (prefers-reduced-motion: reduce){ *{scroll-behavior:auto!important} }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="top">
+  <h1>What the Cincinnati region pays</h1>
+  <p class="lede">Annual wages for 24 metro areas within 180 miles of Cincinnati, from the Census Bureau’s American Community Survey (2020–2024, in 2024 dollars), with the Bureau of Labor Statistics’ May 2025 employer survey alongside as a market reference.</p>
+</header>
+
+<div class="layout">
+<aside class="filters" id="filters">
+  <button class="ftoggle" id="ftoggle" aria-expanded="false" aria-controls="fbody">Filters<span class="sum" id="fsum"></span></button>
+  <div class="fbody" id="fbody">
+    <div class="seg" role="group" aria-label="Which workers">
+      <button data-w="ftyr" aria-pressed="true">Full-time, year-round</button>
+      <button data-w="all" aria-pressed="false">All wage earners</button>
+    </div>
+    <label class="f">Metro area<select id="f-metro"></select></label>
+    <label class="f">Discipline<select id="f-disc"></select></label>
+    <label class="f">Age<select id="f-age" data-dim="age"></select></label>
+    <label class="f">Gender<select id="f-sex" data-dim="sex"></select></label>
+    <label class="f">Education<select id="f-educ" data-dim="educ"></select></label>
+    <label class="f">Race and ethnicity<select id="f-race" data-dim="race"></select></label>
+    <label class="f">Industry<select id="f-ind" data-dim="ind"></select></label>
+    <p class="fnote" id="fnote"></p>
+    <div class="factions">
+      <button class="btn" id="copylink">Copy link to this view</button>
+      <button class="btn" id="reset">Reset</button>
+    </div>
+    <div class="linkbox" id="linkbox"><input id="linkinput" readonly aria-label="Link to this view"></div>
+    <div class="toast" id="toast" role="status"></div>
+  </div>
+</aside>
+
+<main id="main">
+  <section class="hero" id="hero" aria-live="polite"></section>
+
+  <section id="sec-metros">
+    <h2>Across the region’s metros</h2>
+    <p class="sub" id="metros-sub"></p>
+    <div class="legend" aria-hidden="true">
+      <span><i style="background:var(--river-3)"></i>10th–90th percentile</span>
+      <span><i style="background:var(--river-2)"></i>Middle 50%</span>
+      <span><i style="background:var(--ink);width:3px"></i>Median</span>
+      <span><i style="background:repeating-linear-gradient(135deg,transparent 0 2px,var(--muted) 2px 4px)"></i>Median ± margin of error</span>
+    </div>
+    <ul class="rows" id="metro-rows"></ul>
+    <div class="tools"><button class="btn" data-view="metros" aria-pressed="false">View data</button><button class="btn" data-csv="metros">Download CSV</button></div>
+    <div class="tablewrap" id="tbl-metros"></div>
+  </section>
+
+  <section id="sec-split">
+    <div class="head">
+      <div><h2 id="split-title">Broken down</h2><p class="sub" id="split-sub"></p></div>
+      <label class="f" style="margin:0">Break down by<select id="f-split"></select></label>
+    </div>
+    <ul class="rows" id="split-rows"></ul>
+    <div class="tools"><button class="btn" data-view="split" aria-pressed="false">View data</button><button class="btn" data-csv="split">Download CSV</button></div>
+    <div class="tablewrap" id="tbl-split"></div>
+  </section>
+
+  <section id="sec-ref">
+    <h2>Employer-reported market rates</h2>
+    <p class="sub" id="ref-sub"></p>
+    <div id="ref-body"></div>
+    <div class="tools" id="ref-tools"><button class="btn" data-csv="ref">Download CSV</button></div>
+  </section>
+
+  <section>
+    <details class="method" id="method">
+      <summary>How these numbers are made</summary>
+      <div id="method-body"></div>
+    </details>
+  </section>
+</main>
+</div>
+<footer>Sources: U.S. Census Bureau, American Community Survey 2020–2024 5-year Public Use Microdata Sample; U.S. Bureau of Labor Statistics, Occupational Employment and Wage Statistics, May 2025; Census 2020 tract-to-PUMA relationship and 2023 OMB metro delineations. Estimates are this page’s own calculations, not official Census or BLS figures.</footer>
+</div>
+
+<script id="data" type="application/json">__DATA__</script>
+<script>
+"use strict";
+const D = JSON.parse(document.getElementById('data').textContent);
+const META = D.meta, CUBE = D.cube, OEWS = D.oews;
+const K = 81, QS = [0.10, 0.25, 0.50, 0.75, 0.90], MIN_N = META.rules.min_n;
+const DIMS = ['age', 'sex', 'educ', 'race', 'ind'];
+const DIMLABEL = {age:'Age', sex:'Gender', educ:'Education', race:'Race and ethnicity', ind:'Industry', fam:'Tech family'};
+const METRO = Object.fromEntries(META.metros.map(m => [m.id, m]));
+const FAM = META.families;
+
+/* ---------- microdata ---------- */
+function b64(s){ const b = atob(s), u = new Uint8Array(b.length); for (let i = 0; i < b.length; i++) u[i] = b.charCodeAt(i); return u.buffer; }
+const NREC = D.micro.n, WAGE = new Int32Array(b64(D.micro.wage)), WT = new Int16Array(b64(D.micro.w));
+const COL = D.micro.cols;
+const BIG4 = new Set(META.big4.map(id => META.metros.findIndex(m => m.id === id)));
+const METRO_IDX = Object.fromEntries(META.metros.map((m, i) => [m.id, i]));
+
+/* Same rule as pipeline/stats.py: first sorted wage where cumulative weight >= q * total.
+   Replicate weights may be negative, so scan instead of binary search. */
+function estimateRows(idx){
+  const n = idx.length;
+  if (n < MIN_N) return {n, suppressed: true};
+  idx.sort((a, b) => WAGE[a] - WAGE[b] || a - b);
+  const tot = new Float64Array(K), cum = new Float64Array(K);
+  for (const r of idx){ const o = r * K; for (let k = 0; k < K; k++) tot[k] += WT[o + k]; }
+  const res = new Float64Array(K * 5), done = new Uint8Array(K * 5); let left = K * 5;
+  for (const r of idx){
+    const o = r * K, w = WAGE[r];
+    for (let k = 0; k < K; k++){
+      cum[k] += WT[o + k];
+      for (let j = 0; j < 5; j++){
+        const p = k * 5 + j;
+        if (!done[p] && cum[k] >= QS[j] * tot[k]){ done[p] = 1; res[p] = w; left--; }
+      }
+    }
+    if (!left) break;
+  }
+  const last = WAGE[idx[n - 1]];
+  for (let p = 0; p < K * 5; p++) if (!done[p]) res[p] = last;
+  const q = [], moe = [];
+  for (let j = 0; j < 5; j++){
+    let ss = 0; for (let k = 1; k < K; k++){ const d = res[k * 5 + j] - res[j]; ss += d * d; }
+    q.push(res[j]); moe.push(1.645 * Math.sqrt(4 / 80 * ss));
+  }
+  const rel = q[2] ? moe[2] / q[2] * 100 : 999;
+  return {n, pop: tot[0], q, moe, rel, caution: n < META.rules.caution_n || rel > META.rules.caution_rel, suppressed: false};
+}
+function microSelect(sel, ignoreDim){
+  const out = [];
+  const mi = sel.metro === 'REGION' ? -1 : sel.metro === 'SMALL' ? -2 : METRO_IDX[sel.metro];
+  const fi = sel.disc.startsWith('fam:') && ignoreDim !== 'fam' ? FAM.findIndex(f => f.id === sel.disc.slice(4)) : -1;
+  const dims = DIMS.filter(d => sel[d] >= 0 && d !== ignoreDim);
+  for (let r = 0; r < NREC; r++){
+    if (sel.w === 'ftyr' && !COL.ftyr[r]) continue;
+    const m = COL.metro[r];
+    if (mi >= 0 ? m !== mi : mi === -2 ? BIG4.has(m) : false) continue;
+    if (fi >= 0 && COL.fam[r] !== fi) continue;
+    let ok = true; for (const d of dims) if (COL[d][r] !== sel[d]) { ok = false; break; }
+    if (ok) out.push(r);
+  }
+  return out;
+}
+/* ---------- precomputed cube ---------- */
+function cubeGet(w, metro, disc, dim, val){
+  const key = `${w}|${metro}|${disc}|${dim}|${val}`;
+  let a = CUBE[key];
+  if (!a) return {n: 0, suppressed: true, unknownN: true};  // parent group already below the threshold
+  if (a.length === 1) return {n: a[0], suppressed: true};
+  return {n: a[0], pop: a[1], q: a.slice(2, 7).map(x => x * 100), moe: a.slice(7, 12).map(x => x * 100),
+          rel: a[4] ? a[9] / a[4] * 100 : 999, caution: !!a[12], suppressed: false};
+}
+const isTech = s => s.disc === 'tech' || s.disc.startsWith('fam:');
+const cubeDisc = s => s.disc === 'ALL' ? 'ALL' : s.disc.slice(4);
+const activeDims = s => DIMS.filter(d => s[d] >= 0);
+
+/* Estimate for a selection; override lets charts vary one field. */
+function estimate(sel, ignoreDim){
+  if (isTech(sel)) return estimateRows(microSelect(sel, ignoreDim));
+  const ds = activeDims(sel).filter(d => d !== ignoreDim);
+  if (ds.length > 1) return {n: 0, suppressed: true, unsupported: true};
+  return ds.length ? cubeGet(sel.w, sel.metro, cubeDisc(sel), ds[0], sel[ds[0]]) : cubeGet(sel.w, sel.metro, cubeDisc(sel), '-', '-');
+}
+
+/* ---------- state + URL ---------- */
+const DEFAULT = {w:'ftyr', metro:'17140', disc:'tech', age:-1, sex:-1, educ:-1, race:-1, ind:-1, split:'fam'};
+let S = {...DEFAULT};
+function readHash(){
+  const p = new URLSearchParams(location.hash.slice(1)), s = {...DEFAULT};
+  if (p.get('w') === 'all') s.w = 'all';
+  const m = p.get('m'); if (m && (METRO[m] || m === 'REGION' || m === 'SMALL')) s.metro = m;
+  const d = p.get('d'); if (d && validDisc(d)) s.disc = d;
+  for (const k of DIMS){ const v = +p.get(k); if (p.has(k) && Number.isInteger(v) && v >= 0 && v < META.dims[k].length) s[k] = v; }
+  const sp = p.get('split'); if (sp && (DIMS.includes(sp) || sp === 'fam')) s.split = sp;
+  return normalize(s);
+}
+function validDisc(d){ return d === 'ALL' || d === 'tech' || (d.startsWith('fam:') && FAM.some(f => 'fam:' + f.id === d)) || (d.startsWith('soc:') && META.soc.some(g => 'soc:' + g.id === d)); }
+function writeHash(){
+  const p = new URLSearchParams();
+  if (S.w !== 'ftyr') p.set('w', S.w);
+  p.set('m', S.metro); p.set('d', S.disc);
+  for (const k of DIMS) if (S[k] >= 0) p.set(k, S[k]);
+  p.set('split', S.split);
+  const h = '#' + p.toString();
+  if (location.hash !== h) history.replaceState(null, '', h);
+}
+let NOTE = '';
+function normalize(s){
+  NOTE = '';
+  if (!isTech(s)){
+    const ds = activeDims(s);
+    if (ds.length > 1){ for (const d of ds.slice(1)) s[d] = -1; NOTE = 'Kept only the first demographic filter: outside tech roles, one can be applied at a time.'; }
+    if (s.split === 'fam') s.split = 'educ';
+    const a = activeDims(s);
+    if (a.length && s.split !== a[0]) s.split = a[0];
+  }
+  return s;
+}
+
+/* ---------- formatting ---------- */
+const money = v => '$' + (Math.round(v / 100) * 100).toLocaleString('en-US');
+const k$ = v => '$' + (v / 1000).toFixed(1) + 'k';
+const sig2 = v => { if (v < 100) return Math.round(v).toLocaleString('en-US'); const p = Math.pow(10, Math.floor(Math.log10(v)) - 1); return (Math.round(v / p) * p).toLocaleString('en-US'); };
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function metroName(id){ return id === 'REGION' ? 'All 24 metros' : id === 'SMALL' ? '20 smaller metros combined' : METRO[id].name; }
+function discName(d){
+  if (d === 'ALL') return 'All occupations';
+  if (d === 'tech') return 'All tech roles';
+  if (d.startsWith('fam:')) return FAM.find(f => 'fam:' + f.id === d).label;
+  return META.soc.find(g => 'soc:' + g.id === d).label;
+}
+function discPhrase(d){ return d === 'ALL' ? 'all occupations' : d === 'tech' ? 'all tech roles' : discName(d).toLowerCase(); }
+function valLabel(dim, v){ return dim === 'fam' ? FAM[v].label : META.dims[dim][v]; }
+
+/* ---------- filters UI ---------- */
+const $ = id => document.getElementById(id);
+function opt(v, t, sel){ return `<option value="${esc(v)}"${sel ? ' selected' : ''}>${esc(t)}</option>`; }
+function buildFilters(){
+  let h = `<optgroup label="Combined">${opt('REGION', 'All 24 metros', S.metro === 'REGION')}${opt('SMALL', '20 smaller metros combined', S.metro === 'SMALL')}</optgroup><optgroup label="By distance from Cincinnati">`;
+  for (const m of META.metros) h += opt(m.id, `${m.name} (${Math.round(m.miles)} mi)${m.fit_flag ? ' †' : ''}`, S.metro === m.id);
+  $('f-metro').innerHTML = h + '</optgroup>';
+  let d = opt('ALL', 'All occupations', S.disc === 'ALL') + `<optgroup label="Tech roles">${opt('tech', 'All tech roles (7 families)', S.disc === 'tech')}`;
+  for (const f of FAM) d += opt('fam:' + f.id, f.label, S.disc === 'fam:' + f.id);
+  d += '</optgroup><optgroup label="Occupation groups">';
+  for (const g of META.soc) d += opt('soc:' + g.id, g.label, S.disc === 'soc:' + g.id);
+  $('f-disc').innerHTML = d + '</optgroup>';
+  const tech = isTech(S), act = activeDims(S);
+  for (const dim of DIMS){
+    const el = $('f-' + dim);
+    el.innerHTML = opt(-1, 'All', S[dim] < 0) + META.dims[dim].map((l, i) => opt(i, l, S[dim] === i)).join('');
+    el.disabled = !tech && act.length > 0 && !act.includes(dim);
+  }
+  document.querySelectorAll('.seg button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.w === S.w)));
+  $('fnote').textContent = NOTE || (tech ? 'Tech roles: combine any filters. Estimates are computed in your browser from survey records.'
+    : 'Outside tech roles, apply one of age, gender, education, race and ethnicity, or industry at a time.');
+  const sp = $('f-split');
+  const opts = (tech ? ['fam'] : []).concat(DIMS);
+  sp.innerHTML = opts.map(o => `<option value="${o}"${S.split === o ? ' selected' : ''}${!tech && act.length && o !== act[0] ? ' disabled' : ''}>${DIMLABEL[o]}</option>`).join('');
+  const parts = [S.w === 'ftyr' ? 'Full-time' : 'All earners', discName(S.disc), metroName(S.metro)].concat(act.map(x => META.dims[x][S[x]]));
+  $('fsum').textContent = parts.join(', ');
+}
+function onChange(){ S = normalize(S); writeHash(); render(); }
+$('f-metro').addEventListener('change', e => { S.metro = e.target.value; onChange(); });
+$('f-disc').addEventListener('change', e => { S.disc = e.target.value; if (isTech(S) && S.split !== 'fam' && !activeDims(S).length) S.split = 'fam'; onChange(); });
+for (const dim of DIMS) $('f-' + dim).addEventListener('change', e => {
+  S[dim] = +e.target.value;
+  if (!isTech(S) && S[dim] >= 0){ for (const o of DIMS) if (o !== dim) S[o] = -1; S.split = dim; }
+  onChange();
+});
+$('f-split').addEventListener('change', e => { S.split = e.target.value; onChange(); });
+document.querySelectorAll('.seg button').forEach(b => b.addEventListener('click', () => { S.w = b.dataset.w; onChange(); }));
+$('reset').addEventListener('click', () => { S = {...DEFAULT}; onChange(); });
+$('ftoggle').addEventListener('click', () => { const f = $('filters'); f.classList.toggle('open'); $('ftoggle').setAttribute('aria-expanded', f.classList.contains('open')); });
+window.addEventListener('hashchange', () => { S = readHash(); render(); });
+
+function toast(t){ $('toast').textContent = t; clearTimeout(toast.t); toast.t = setTimeout(() => $('toast').textContent = '', 4000); }
+$('copylink').addEventListener('click', async () => {
+  writeHash(); const url = location.href;
+  try { await navigator.clipboard.writeText(url); toast('Link copied. It opens this exact view.'); }
+  catch { $('linkbox').classList.add('show'); $('linkinput').value = url; $('linkinput').select(); toast('Copy the link above.'); }
+});
+
+/* ---------- OEWS reference ---------- */
+function refOccs(sel){
+  if (sel.disc === 'ALL') return ['000000'];
+  if (sel.disc === 'tech') return FAM.flatMap(f => f.oews);
+  if (sel.disc.startsWith('fam:')) return FAM.find(f => 'fam:' + f.id === sel.disc).oews;
+  return [sel.disc.slice(4) + '0000'];
+}
+function refRows(sel){
+  const o = OEWS[sel.metro]; if (!o) return null;
+  return refOccs(sel).map(c => ({occ: c, name: META.occnames[c] || c, v: o[c]}));
+}
+
+/* ---------- rendering helpers ---------- */
+function scaleMax(ests){
+  let mx = 0; for (const e of ests) if (e && !e.suppressed) mx = Math.max(mx, e.q[4]);
+  if (!mx) mx = 100000;
+  const step = mx > 200000 ? 50000 : 25000; return Math.ceil(mx * 1.04 / step) * step;
+}
+const pc = (v, mx) => Math.max(0, Math.min(100, v / mx * 100)).toFixed(2) + '%';
+function barHTML(e, mx){
+  const [p10, p25, p50, p75, p90] = e.q, m = e.moe[2];
+  return `<div class="bar" aria-hidden="true"><div class="s o" style="left:${pc(p10, mx)};width:calc(${pc(p90, mx)} - ${pc(p10, mx)})"></div>` +
+    `<div class="s i" style="left:${pc(p25, mx)};width:calc(${pc(p75, mx)} - ${pc(p25, mx)})"></div>` +
+    `<div class="s e" style="left:${pc(Math.max(0, p50 - m), mx)};width:calc(${pc(p50 + m, mx)} - ${pc(Math.max(0, p50 - m), mx)})"></div>` +
+    `<div class="s m" style="left:${pc(p50, mx)}"></div></div>`;
+}
+function rowHTML(label, e, mx, opts = {}){
+  const cls = [opts.sel ? 'sel' : '', e.caution ? 'caut' : '', opts.click ? 'click' : ''].join(' ');
+  const data = opts.click ? ` data-pick="${esc(opts.click)}" tabindex="0" role="button"` : '';
+  if (e.suppressed){
+    const why = e.unsupported ? 'Not available with this filter combination.' : e.unknownN ? 'Too few survey responses to estimate.' : `Too few survey responses to estimate (n=${e.n}).`;
+    return `<li class="${cls}"${data}><div class="rl"><span class="nm">${esc(label)}${opts.mark || ''}</span></div><div class="supp">${why}</div></li>`;
+  }
+  const aria = `${label}: median ${money(e.q[2])}, plus or minus ${money(e.moe[2])}; middle half ${money(e.q[1])} to ${money(e.q[3])}; ${e.n} responses${e.caution ? '; use with caution' : ''}`;
+  return `<li class="${cls}"${data} aria-label="${esc(aria)}"><div class="rl"><span class="nm">${esc(label)}${opts.mark || ''}${e.caution ? '<span class="flag">Thin sample</span>' : ''}</span>` +
+    `<span class="v">${k$(e.q[2])}<small>±${k$(e.moe[2]).slice(1)}, n=${e.n.toLocaleString('en-US')}</small></span></div>${barHTML(e, mx)}</li>`;
+}
+function axisHTML(mx){
+  const step = [25000, 50000, 100000].find(s => mx / s <= 4) || 100000; let h = '<div class="axis" aria-hidden="true">';
+  for (let v = 0; v <= mx; v += step) h += `<span style="left:${pc(v, mx)}">${v ? '$' + v / 1000 + 'k' : '$0'}</span>`;
+  return h + '</div>';
+}
+const TABLE_COLS = ['Group', 'Responses (n)', 'Est. workers', 'P10', 'P25', 'Median', 'P75', 'P90', 'Median MOE (90%)', 'MOE % of median', 'Status'];
+function tableRows(list){
+  return list.map(([label, e]) => e.suppressed
+    ? [label, e.unknownN || e.unsupported ? '' : e.n, '', '', '', '', '', '', '', '', e.unsupported ? 'not available' : 'suppressed (n<' + MIN_N + ')']
+    : [label, e.n, Math.round(e.pop), ...e.q.map(Math.round), Math.round(e.moe[2]), Math.round(e.rel), e.caution ? 'caution' : 'ok']);
+}
+function tableHTML(cols, rows){
+  return `<table><thead><tr>${cols.map(c => `<th scope="col">${esc(c)}</th>`).join('')}</tr></thead><tbody>` +
+    rows.map(r => `<tr>${r.map((c, i) => `<td>${typeof c === 'number' && i > 0 && cols[i] !== 'Responses (n)' && !/%/.test(cols[i]) ? money(c) : esc(c)}</td>`).join('')}</tr>`).join('') + '</tbody></table>';
+}
+function csv(cols, rows){
+  const q = v => { const s = v == null ? '' : String(v); return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; };
+  return [cols, ...rows].map(r => r.map(q).join(',')).join('\n') + '\n';
+}
+
+/* ---------- downloads: claude.ai capability, else browser download ---------- */
+let DL = null, inClaude = typeof window.claude === 'object' && window.claude && typeof window.claude.use === 'function';
+if (inClaude) window.claude.use('downloads').then(x => { DL = x; }).catch(() => {});
+async function saveFile(name, text){
+  if (inClaude){
+    if (!DL){ toast('Downloads aren’t available in this view. Use View data to copy the table.'); return; }
+    try { await DL.save({filename: name, data: text}); }
+    catch (e){ if (e && e.code === 'declined') return; toast(e && e.code === 'rate_limited' ? 'A save prompt is already open.' : 'Couldn’t save the file here. Use View data to copy the table.'); }
+    return;
+  }
+  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([text], {type: 'text/csv'})); a.download = name;
+  document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500);
+}
+
+/* ---------- render ---------- */
+let LAST = {};
+function context(){
+  const act = activeDims(S).map(d => ({dim: d, label: META.dims[d][S[d]]}));
+  return {act, who: S.w === 'ftyr' ? 'full-time, year-round workers' : 'all wage earners'};
+}
+function render(){
+  buildFilters();
+  const {act, who} = context();
+  const csvMeta = [`# Selection: ${S.w === 'ftyr' ? 'full-time year-round' : 'all wage earners'}; ${discName(S.disc)}; ${metroName(S.metro)}${act.map(a => '; ' + DIMLABEL[a.dim] + ': ' + a.label).join('')}`,
+                   '# Source: ACS 2020-2024 5-year PUMS, 2024 dollars; MOE = 90% via 80 SDR replicate weights. Link: ' + location.href];
+
+  /* hero */
+  const e = estimate(S), refs = S.disc === 'tech' ? null : refRows(S), lead = refs && refs.find(r => r.v && r.v[3] != null);
+  let h = '';
+  if (e.suppressed){
+    h = `<p class="what">${esc(discName(S.disc))} in ${esc(metroName(S.metro))}</p><div class="empty">${e.unsupported ? 'This combination isn’t available outside tech roles.' : `Too few survey responses to estimate this group${e.unknownN ? '' : ` (n=${e.n})`}.`} Try removing a filter, choosing “All wage earners”, or switching to a combined metro option.</div>`;
+  } else {
+    const mx = scaleMax([e, lead ? {q: [0, 0, 0, 0, lead.v[3]]} : null]);
+    h = `<div class="big">${money(e.q[2])}<small>± ${money(e.moe[2])}</small></div>
+      <p class="what">Median annual wage for ${esc(who)} in ${esc(discPhrase(S.disc))}, ${esc(metroName(S.metro))}${METRO[S.metro] && METRO[S.metro].fit_flag ? ' †' : ''}</p>
+      ${act.length ? `<div class="chips">${act.map(a => `<span class="chip">${esc(a.label)}</span>`).join('')}</div>` : ''}
+      <div class="strip" role="img" aria-label="Wage distribution: 10th percentile ${money(e.q[0])}, median ${money(e.q[2])}, 90th percentile ${money(e.q[4])}">
+        <div class="s o" style="left:${pc(e.q[0], mx)};width:calc(${pc(e.q[4], mx)} - ${pc(e.q[0], mx)})"></div>
+        <div class="s i" style="left:${pc(e.q[1], mx)};width:calc(${pc(e.q[3], mx)} - ${pc(e.q[1], mx)})"></div>
+        <div class="s e" style="left:${pc(Math.max(0, e.q[2] - e.moe[2]), mx)};width:calc(${pc(e.q[2] + e.moe[2], mx)} - ${pc(Math.max(0, e.q[2] - e.moe[2]), mx)})"></div>
+        <div class="s m" style="left:${pc(e.q[2], mx)}"></div>
+        ${lead ? `<div class="ref" style="left:${pc(lead.v[3], mx)}" title="BLS median: ${esc(lead.name)}"></div>` : ''}
+      </div>${axisHTML(mx)}
+      <p class="facts" style="margin:14px 0 0">Percentiles: 10% of workers earn less than the 10th, 90% less than the 90th.</p>
+      <ul class="pct" style="margin-top:8px">
+        <li>10th<b>${k$(e.q[0])}</b></li><li class="q">25th<b>${k$(e.q[1])}</b></li>
+        <li class="mid">Median<b>${k$(e.q[2])}</b></li><li class="q">75th<b>${k$(e.q[3])}</b></li><li>90th<b>${k$(e.q[4])}</b></li>
+      </ul>
+      ${lead ? `<div class="reflegend"><i></i><span>BLS employer survey, May 2025: ${esc(lead.name)} median ${money(lead.v[3])}</span></div>` : ''}
+      <div class="facts">
+        <p>Based on ${e.n.toLocaleString('en-US')} survey responses, representing about ${sig2(e.pop)} workers. The median’s margin of error is ±${money(e.moe[2])} at 90% confidence (${Math.round(e.rel)}% of the median).</p>
+        ${e.caution ? `<p class="warnline">Thin sample: treat this estimate as approximate.</p>` : ''}
+        ${METRO[S.metro] && METRO[S.metro].fit_flag ? `<p>† Survey areas only approximately match this metro’s boundary (${Math.round(METRO[S.metro].coverage * 100)}% of its residents covered; ${Math.round(METRO[S.metro].purity * 100)}% of sampled residents live inside it).</p>` : ''}
+      </div>
+      <div class="tools"><button class="btn" data-view="hero" aria-pressed="false">View data</button><button class="btn" data-csv="hero">Download CSV</button></div>
+      <div class="tablewrap" id="tbl-hero"></div>`;
+  }
+  $('hero').innerHTML = h;
+  LAST.hero = {cols: TABLE_COLS, rows: tableRows([[`${discName(S.disc)}, ${metroName(S.metro)}`, e]]), meta: csvMeta, file: 'selection'};
+
+  /* metros */
+  const mrows = META.metros.map(m => [m, estimate({...S, metro: m.id})]);
+  mrows.sort((a, b) => (a[1].suppressed - b[1].suppressed) || (b[1].suppressed ? a[0].miles - b[0].miles : b[1].q[2] - a[1].q[2]));
+  const mmx = scaleMax(mrows.map(r => r[1]));
+  $('metros-sub').textContent = `Median and spread for ${who} in ${discPhrase(S.disc)}${act.length ? ' (' + act.map(a => a.label).join(', ') + ')' : ''}, sorted by median. Tap a metro to select it.`;
+  $('metro-rows').innerHTML = mrows.map(([m, est]) => rowHTML(m.name, est, mmx, {sel: m.id === S.metro, click: m.id, mark: m.fit_flag ? ' †' : ''})).join('') +
+    `<li style="border:0;padding:4px 6px 0">${axisHTML(mmx)}</li>`;
+  LAST.metros = {cols: ['Metro', 'Miles from Cincinnati', ...TABLE_COLS.slice(1)], rows: tableRows(mrows.map(([m, est]) => [m.name, est])).map((r, i) => [r[0], Math.round(mrows[i][0].miles), ...r.slice(1)]), meta: csvMeta, file: 'by-metro'};
+
+  /* split */
+  const dim = S.split, n = dim === 'fam' ? FAM.length : META.dims[dim].length;
+  const srows = [];
+  for (let v = 0; v < n; v++){
+    const s2 = {...S};
+    if (dim === 'fam') s2.disc = 'fam:' + FAM[v].id; else s2[dim] = v;
+    srows.push([valLabel(dim, v), estimate(s2), dim === 'fam' ? S.disc === s2.disc : S[dim] === v]);
+  }
+  const smx = scaleMax(srows.map(r => r[1]));
+  $('split-title').textContent = 'Broken down by ' + DIMLABEL[dim].toLowerCase();
+  $('split-sub').textContent = `${discName(S.disc)} in ${metroName(S.metro)}, ${who}.` + (dim !== 'fam' && S[dim] >= 0 ? ` Your ${DIMLABEL[dim].toLowerCase()} filter is highlighted.` : '') + (dim === 'ind' ? ' Industry is the employer’s industry.' : '');
+  $('split-rows').innerHTML = srows.map(([l, est, sel]) => rowHTML(l, est, smx, {sel})).join('') + `<li style="border:0;padding:4px 6px 0">${axisHTML(smx)}</li>`;
+  LAST.split = {cols: [DIMLABEL[dim], ...TABLE_COLS.slice(1)], rows: tableRows(srows.map(r => [r[0], r[1]])), meta: csvMeta, file: 'by-' + dim};
+
+  /* OEWS reference */
+  const rr = refRows(S);
+  if (!rr){
+    $('ref-sub').textContent = 'BLS publishes each metro separately, so there’s no combined figure. Pick a single metro to see its employer-reported wages.';
+    $('ref-body').innerHTML = ''; $('ref-tools').style.display = 'none'; LAST.ref = null;
+  } else {
+    $('ref-sub').textContent = `BLS Occupational Employment and Wage Statistics, May 2025, for ${METRO[S.metro].name}. Employers report these for all workers in the occupation; they aren’t filtered by age, gender, education, race, or industry. Compare with care: see the methodology notes.`;
+    const cols = ['Occupation (SOC)', 'Employment', 'P10', 'P25', 'Median', 'P75', 'P90'];
+    const rows = rr.map(r => [`${r.name} (${r.occ.slice(0, 2)}-${r.occ.slice(2)})`, ...(r.v ? r.v.map(x => x == null ? 'not published' : x) : ['not published', '', '', '', '', ''])]);
+    $('ref-body').innerHTML = `<div class="tablewrap reftable"><table><thead><tr>${cols.map(c => `<th scope="col">${c}</th>`).join('')}</tr></thead><tbody>` +
+      rows.map(r => `<tr>${r.map((c, i) => `<td>${i === 0 ? esc(c) : typeof c === 'number' ? (i === 1 ? c.toLocaleString('en-US') : money(c)) : esc(c)}</td>`).join('')}</tr>`).join('') + '</tbody></table></div>';
+    $('ref-tools').style.display = '';
+    LAST.ref = {cols, rows, meta: [`# BLS OEWS May 2025, ${METRO[S.metro].name} (CBSA ${S.metro}), cross-industry, annual wages`], file: 'bls-oews-reference'};
+  }
+  // re-open any tables the viewer had open
+  for (const k of OPEN) showTable(k, true);
+}
+const OPEN = new Set();
+function showTable(k, on){
+  const wrap = $('tbl-' + k), btn = document.querySelector(`[data-view="${k}"]`);
+  if (!wrap || !LAST[k]) return;
+  if (on){ wrap.innerHTML = tableHTML(LAST[k].cols, LAST[k].rows); wrap.classList.add('show'); OPEN.add(k); }
+  else { wrap.classList.remove('show'); wrap.innerHTML = ''; OPEN.delete(k); }
+  if (btn){ btn.setAttribute('aria-pressed', String(on)); btn.textContent = on ? 'Hide data' : 'View data'; }
+}
+document.addEventListener('click', e => {
+  const v = e.target.closest('[data-view]'); if (v){ showTable(v.dataset.view, !OPEN.has(v.dataset.view)); return; }
+  const c = e.target.closest('[data-csv]');
+  if (c){ const t = LAST[c.dataset.csv]; if (t) saveFile(`salary-explorer-${t.file}.csv`, t.meta.join('\n') + '\n' + csv(t.cols, t.rows)); return; }
+  const p = e.target.closest('[data-pick]'); if (p){ S.metro = p.dataset.pick; onChange(); $('hero').scrollIntoView({block: 'start'}); }
+});
+document.addEventListener('keydown', e => { const p = e.target.closest && e.target.closest('[data-pick]'); if (p && (e.key === 'Enter' || e.key === ' ')){ e.preventDefault(); p.click(); } });
+
+/* ---------- methodology ---------- */
+function methodology(){
+  const r = META.rules, fams = FAM.map(f => `<li><b>${esc(f.label)}</b>: ACS codes ${f.acs.map(c => `<code>${c}</code>`).join(', ')}; BLS reference ${f.oews.map(c => esc(META.occnames[c] || c)).join(', ')}.</li>`).join('');
+  const fit = META.metros.map(m => [m.name, Math.round(m.miles), m.pumas_assigned, Math.round(m.coverage * 100) + '%', Math.round(m.purity * 100) + '%', m.fit_flag ? 'approximate' : 'good']);
+  LAST.fit = {cols: ['Metro', 'Miles', 'PUMAs used', 'Residents covered', 'Sample inside metro', 'Boundary fit'], rows: fit, meta: ['# PUMA-to-metro fit, from data/geo/metros.csv'], file: 'metro-boundary-fit'};
+  $('method-body').innerHTML = `
+  <h3>Sources</h3>
+  <p>Wages and demographics come from the Census Bureau’s American Community Survey Public Use Microdata Sample, 2020–2024 five-year file, for Ohio, Kentucky, Indiana, and West Virginia (${META.counts.records.toLocaleString('en-US')} wage earners in the selected metros, ${META.counts.ftyr.toLocaleString('en-US')} of them full-time, year-round). Market reference rates come from the Bureau of Labor Statistics’ Occupational Employment and Wage Statistics, May 2025, metro-level, all industries.</p>
+  <h3>Who’s counted</h3>
+  <p>Wage and salary workers aged 16 and over with positive wage income in the past 12 months (private, nonprofit, and government employees; self-employed people are excluded because their business income isn’t wages). “Full-time, year-round” means usually working 35+ hours a week and 50+ weeks in the past year. Wages are the ACS wage and salary income field, adjusted to 2024 dollars with the Census Bureau’s own adjustment factor, so all five survey years are comparable. People are placed by where they live, not where they work.</p>
+  <h3>Geography</h3>
+  <p>Metros are 2023 OMB metropolitan statistical areas whose population center lies within 180 miles of downtown Cincinnati (${META.metros.length} areas; Toledo, Bowling Green, and Evansville fall just inside at 179–180 miles). The ACS microdata only identifies Public Use Microdata Areas (PUMAs, about 100,000+ people each), which don’t follow metro lines. A PUMA is assigned to a metro when at least half its 2020 population lives inside the metro, using Census tract populations. Metros marked † fit less well (below 85% on either measure) and should be read as “the metro and some surrounding area.” “20 smaller metros combined” is every metro except Cincinnati, Columbus, Indianapolis, and Louisville.</p>
+  <div class="tools"><button class="btn" data-view="fit" aria-pressed="false">View data</button><button class="btn" data-csv="fit">Download CSV</button></div>
+  <div class="tablewrap" id="tbl-fit"></div>
+  <h3>Tech families</h3>
+  <p>Seven families are built from 2018 Standard Occupational Classification codes as published in the ACS. The ACS combines data scientists, statisticians, and mathematicians into one code, so “Data & analytics” can’t isolate data scientists; the BLS reference can.</p><ul>${fams}</ul>
+  <h3>Statistics</h3>
+  <p>Percentiles (10th, 25th, median, 75th, 90th) are weighted with the ACS person weight: each is the lowest wage at which the cumulative weight reaches that share of the total. Margins of error use the Census Bureau’s successive difference replication method with the 80 replicate weights: the estimate is recomputed with each replicate weight, and MOE = 1.645 × √(4/80 × Σ(replicate − estimate)²), a 90% confidence interval. Groups with fewer than ${r.min_n} survey responses are hidden. Groups with fewer than ${r.caution_n} responses, or a median MOE above ${r.caution_rel}% of the median, are marked “thin sample.” Top wage values in the ACS are capped (top-coded) by state, which can pull down the 90th percentile for the highest-paid groups.</p>
+  <h3>How the page computes</h3>
+  <p>Tech roles ship as ${META.counts.tech.toLocaleString('en-US')} anonymized survey records with their weights, so any combination of filters is computed live in your browser with full replicate-weight margins of error. Other disciplines use precomputed tables (every metro × discipline, with up to one of age, gender, education, race and ethnicity, or industry) because the full file is too large for a web page. Both paths use identical formulas.</p>
+  <h3>Why the ACS and BLS numbers differ</h3>
+  <p>They measure different things. The ACS asks households; people describe their own job title and recall last year’s pay, and the five-year file pools 2020–2024, so it lags recent raises even after inflation adjustment. The BLS survey asks employers about current pay for each position, May 2025, using strict occupational definitions. Expect BLS medians to run higher for most professional roles, especially management titles that people self-report more broadly.</p>
+  <h3>Gender and race categories</h3>
+  <p>The ACS records sex as male or female; it’s shown here as gender. Race and ethnicity: Hispanic of any race, then non-Hispanic White, Black, Asian, and other or multiracial.</p>
+  <h3>Code and data</h3>
+  <p>The full pipeline (download, crosswalk, estimates) and every intermediate table are in the project repository so results can be reproduced and checked.</p>`;
+}
+
+S = readHash(); writeHash(); methodology(); render();
+</script>
+</body>
+</html>
