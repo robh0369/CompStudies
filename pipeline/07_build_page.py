@@ -28,7 +28,8 @@ meta = {
 payload = {'meta': meta, 'cube': json.load(open(DATA/'web/cube.json')),
            'micro': json.load(open(DATA/'web/tech_micro.json')), 'oews': oews}
 blob = json.dumps(payload, separators=(',', ':'), ensure_ascii=False).replace('</', '<\\/')
-html = (ROOT/'web/template.html').read_text().replace('__DATA__', blob)
+geo = (DATA/'web/geo.json').read_text().replace('</', '<\\/')   # map outlines + pins, from pipeline/make_geo.mjs
+html = (ROOT/'web/template.html').read_text().replace('__GEO__', geo).replace('__DATA__', blob)
 
 (ROOT/'docs').mkdir(exist_ok=True)
 (ROOT/'docs/index.html').write_text(html)            # GitHub Pages serves /docs on main

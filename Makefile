@@ -7,6 +7,8 @@ build:
 	python3 05_estimates.py && python3 06_tech_microdata.py && python3 07_build_page.py
 page:
 	cd pipeline && python3 07_build_page.py
+template:
+	python3 pipeline/apply_template.py
 verify:
 	python3 pipeline/verify_page.py
-.PHONY: all fetch build page verify
+.PHONY: all fetch build page template verify
