@@ -43,6 +43,7 @@ docs/       index.html (built page, served by GitHub Pages)
 pip install -r requirements.txt
 BLS_USER_AGENT="you@example.com" make all
 ```
+Design-only changes to `web/template.html`: `make template` rebuilds the page from the data already inlined in it.
 BLS blocks anonymous downloads; set `BLS_USER_AGENT` to a contact email. The Census API now requires a key,
 so the pipeline uses bulk files only.
 

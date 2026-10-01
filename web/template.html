@@ -3,224 +3,308 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>What the Cincinnati region pays</title>
+<title>Cincinnati Salary Explorer</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,400;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
+/* Palette: neutral slate UI, one blue accent for ACS ranges, orange for the BLS reference.
+   Chart steps validated with the dataviz palette checker (ordinal ramp + 2-slot categorical, light and dark). */
 :root{
-  --paper:#F2F4F3; --card:#FFFFFF; --ink:#16212B; --muted:#56636E; --rule:#D3D9DD;
-  --river:#1C5D74; --river-2:#7FA9B9; --river-3:#D5E3E9; --marker:#8F6400; --warn:#8C5300; --sel:#E7EFF2;
-  --font:"Public Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-  color-scheme: light;
+  --bg:#F6F7F9; --card:#FFFFFF; --ink:#0E1726; --ink-2:#475467; --muted:#667085; --rule:#E4E7EC; --rule-2:#F0F2F5;
+  --accent:#2A78D6; --accent-ink:#1C5CAB; --wash:#EEF4FD;
+  --band-o:#86B6EF; --band-i:#2A78D6;
+  --ref:#EB6834; --ref-o:#AAB2BE; --ref-i:#6B7585;
+  --warn:#B54708; --warn-bg:#FEF6EE;
+  --shadow:0 1px 2px rgba(16,24,40,.04),0 1px 3px rgba(16,24,40,.06);
+  --font:"Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  color-scheme:light;
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
-    --paper:#10171C; --card:#172128; --ink:#E4EAED; --muted:#9AA8B2; --rule:#2C3A43;
-    --river:#7CC0D8; --river-2:#3F7488; --river-3:#20404C; --marker:#E2B24C; --warn:#E8A84E; --sel:#1D2E36;
-    color-scheme: dark;
+    --bg:#0D1117; --card:#161B22; --ink:#E6EDF3; --ink-2:#B1BAC4; --muted:#8B949E; --rule:#2A313C; --rule-2:#1F252E;
+    --accent:#3987E5; --accent-ink:#86B6EF; --wash:#14243A;
+    --band-o:#184F95; --band-i:#3987E5;
+    --ref:#D95926; --ref-o:#4A5363; --ref-i:#7D8796;
+    --warn:#FDB022; --warn-bg:#2B2111;
+    --shadow:none; color-scheme:dark;
   }
 }
 :root[data-theme="dark"]{
-  --paper:#10171C; --card:#172128; --ink:#E4EAED; --muted:#9AA8B2; --rule:#2C3A43;
-  --river:#7CC0D8; --river-2:#3F7488; --river-3:#20404C; --marker:#E2B24C; --warn:#E8A84E; --sel:#1D2E36;
-  color-scheme: dark;
+  --bg:#0D1117; --card:#161B22; --ink:#E6EDF3; --ink-2:#B1BAC4; --muted:#8B949E; --rule:#2A313C; --rule-2:#1F252E;
+  --accent:#3987E5; --accent-ink:#86B6EF; --wash:#14243A;
+  --band-o:#184F95; --band-i:#3987E5;
+  --ref:#D95926; --ref-o:#4A5363; --ref-i:#7D8796;
+  --warn:#FDB022; --warn-bg:#2B2111;
+  --shadow:none; color-scheme:dark;
 }
 :root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
-html{scroll-padding-top:env(safe-area-inset-top,0px)}
 *,*::before,*::after{box-sizing:inherit}
-body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font);font-size:16px;line-height:1.5;
-  font-variant-numeric:tabular-nums;-webkit-text-size-adjust:100%}
-a{color:var(--river)}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font);font-size:15px;line-height:1.5;
+  -webkit-font-smoothing:antialiased;-webkit-text-size-adjust:100%}
+a{color:var(--accent-ink)}
 button,select,input{font:inherit;color:inherit}
-:focus-visible{outline:3px solid var(--river);outline-offset:2px;border-radius:3px}
-.wrap{max-width:1180px;margin:0 auto;padding:0 20px}
-header.top{padding:28px 0 18px}
-h1{font-size:clamp(1.9rem,4.6vw,3rem);line-height:1.05;letter-spacing:-0.025em;margin:0 0 10px;font-weight:800;max-width:18ch}
-.lede{color:var(--muted);max-width:62ch;margin:0}
-.layout{display:grid;grid-template-columns:minmax(0,1fr);gap:24px;padding-bottom:48px}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:6px}
+svg.i{width:16px;height:16px;flex:none;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.wrap{max-width:1160px;margin:0 auto;padding:0 20px}
+
+/* Header */
+header.top{display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"ttl btn" "lede btn";align-items:end;column-gap:16px;padding:28px 0 20px}
+header.top .ttl{grid-area:ttl} header.top .lede{grid-area:lede} header.top #copylink{grid-area:btn}
+@media (max-width:600px){header.top{grid-template-areas:"ttl btn" "lede lede"} header.top #copylink span{display:none} header.top #copylink{padding:9px}}
+.eyebrow{font-size:.75rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--accent-ink);margin:0 0 6px}
+h1{font-size:clamp(1.6rem,3.6vw,2.1rem);line-height:1.15;letter-spacing:-.02em;margin:0;font-weight:700}
+.lede{color:var(--muted);margin:6px 0 0;font-size:.92rem}
+
+/* Buttons */
+.btn{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--rule);background:var(--card);border-radius:8px;
+  padding:7px 12px;cursor:pointer;font-size:.85rem;font-weight:500;color:var(--ink-2);white-space:nowrap;box-shadow:var(--shadow)}
+.btn:hover{border-color:var(--accent);color:var(--ink)}
+.btn.primary{background:var(--ink);color:var(--card);border-color:var(--ink)}
+.btn.primary:hover{opacity:.9;color:var(--card)}
+.btn.icon{padding:6px 9px;box-shadow:none}
+.btn[aria-pressed="true"]{background:var(--wash);border-color:var(--accent);color:var(--accent-ink)}
+.linkbtn{background:none;border:0;padding:0;color:var(--accent-ink);font-size:.85rem;font-weight:500;cursor:pointer}
+
+/* Layout */
+.layout{display:grid;grid-template-columns:minmax(0,1fr);gap:20px;padding-bottom:40px}
 .layout>*{min-width:0}
-@media (min-width:920px){.layout{grid-template-columns:290px minmax(0,1fr);align-items:start}
+@media (min-width:920px){.layout{grid-template-columns:272px minmax(0,1fr);align-items:start}
   aside.filters{position:sticky;top:calc(16px + env(safe-area-inset-top,0px))}}
+.card{background:var(--card);border:1px solid var(--rule);border-radius:14px;box-shadow:var(--shadow)}
 
 /* Filters */
-aside.filters{background:var(--card);border:1px solid var(--rule);border-radius:10px;padding:16px}
-.ftoggle{display:none;width:100%;text-align:left;background:none;border:0;padding:0;font-weight:700;cursor:pointer}
-.ftoggle .sum{display:block;font-weight:400;color:var(--muted);font-size:.9rem;margin-top:2px}
-@media (max-width:919px){.ftoggle{display:block}
+aside.filters{padding:16px}
+.ftoggle{display:none;width:100%;align-items:center;gap:10px;text-align:left;background:none;border:0;padding:0;cursor:pointer}
+.ftoggle b{font-weight:600}
+.ftoggle .sum{display:block;color:var(--muted);font-size:.82rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ftoggle .txt{flex:1;min-width:0}
+.ftoggle .chev{transition:transform .15s}
+aside.filters.open .ftoggle .chev{transform:rotate(180deg)}
+@media (max-width:919px){.ftoggle{display:flex}
   aside.filters:not(.open) .fbody{display:none}
   aside.filters.open .fbody{margin-top:14px}}
-.seg{display:grid;grid-template-columns:1fr 1fr;border:1px solid var(--rule);border-radius:8px;overflow:hidden;margin-bottom:14px}
-.seg button{border:0;background:transparent;padding:8px 6px;cursor:pointer;font-size:.88rem;line-height:1.25}
-.seg button[aria-pressed="true"]{background:var(--river);color:var(--card);font-weight:600}
-label.f{display:block;font-size:.85rem;font-weight:600;margin:0 0 12px}
-label.f select{display:block;width:100%;margin-top:4px;padding:8px 10px;border:1px solid var(--rule);border-radius:7px;
-  background:var(--paper);font-weight:400;font-size:.95rem}
-label.f select:disabled{opacity:.5}
-.fnote{font-size:.8rem;color:var(--muted);margin:2px 0 12px}
-.factions{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px}
-.btn{border:1px solid var(--rule);background:var(--paper);border-radius:7px;padding:7px 12px;cursor:pointer;font-size:.88rem}
-.btn:hover{border-color:var(--river)}
-.btn[aria-pressed="true"]{background:var(--sel);border-color:var(--river)}
-.linkbox{display:none;margin-top:8px}
+.seg{display:grid;grid-template-columns:1fr 1fr;background:var(--rule-2);border-radius:9px;padding:3px;margin-bottom:16px}
+.seg button{border:0;background:transparent;padding:6px 4px;border-radius:7px;cursor:pointer;font-size:.82rem;font-weight:500;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--card);color:var(--ink);box-shadow:0 1px 2px rgba(16,24,40,.12)}
+label.f{display:block;font-size:.75rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin:0 0 14px}
+label.f select{display:block;width:100%;margin-top:5px;padding:8px 10px;border:1px solid var(--rule);border-radius:8px;
+  background:var(--card);font-size:.92rem;font-weight:500;color:var(--ink);text-transform:none;letter-spacing:0}
+label.f select:disabled{opacity:.45}
+.more{border-top:1px solid var(--rule);padding-top:12px;margin-top:2px}
+.moretoggle{width:100%;cursor:pointer;background:none;border:0;padding:0;display:flex;align-items:center;gap:8px;font-size:.88rem;font-weight:600;margin-bottom:2px}
+.moretoggle .chev{margin-left:auto;transition:transform .15s}
+.moretoggle[aria-expanded="true"] .chev{transform:rotate(180deg)}
+.moretoggle[aria-expanded="true"]{margin-bottom:14px}
+.count{background:var(--accent);color:#fff;border-radius:999px;font-size:.7rem;padding:0 7px;line-height:18px}
+.count:empty{display:none}
+.fnote{font-size:.8rem;color:var(--muted);margin:0 0 12px}
+.fnote:empty{display:none}
+.factions{display:flex;justify-content:flex-end;border-top:1px solid var(--rule);padding-top:12px;margin-top:4px}
+.linkbox{display:none;margin:0 0 16px}
 .linkbox.show{display:block}
-.linkbox input{width:100%;padding:6px 8px;border:1px solid var(--rule);border-radius:6px;background:var(--paper);font-size:.8rem}
-.toast{font-size:.82rem;color:var(--river);min-height:1.2em;margin-top:6px}
+.linkbox input{width:100%;padding:8px 10px;border:1px solid var(--rule);border-radius:8px;background:var(--card);font-size:.82rem}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--card);
+  font-size:.85rem;font-weight:500;padding:9px 16px;border-radius:999px;opacity:0;pointer-events:none;transition:opacity .2s;z-index:20;max-width:90vw}
+.toast.show{opacity:1}
 
 /* Sections */
-main section{background:var(--card);border:1px solid var(--rule);border-radius:10px;padding:20px;margin-bottom:20px}
-h2{font-size:1.25rem;margin:0 0 4px;letter-spacing:-0.01em}
-.sub{color:var(--muted);font-size:.92rem;margin:0 0 14px;max-width:70ch}
-.tools{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0 0}
-.head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}
-.head select{padding:7px 10px;border:1px solid var(--rule);border-radius:7px;background:var(--paper)}
+main section{padding:20px;margin-bottom:20px}
+.shead{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px}
+h2{font-size:1rem;font-weight:600;margin:0;letter-spacing:-.005em}
+.sub{color:var(--muted);font-size:.82rem;margin:2px 0 0}
+.tools{display:flex;gap:6px;flex:none}
+.legend{display:flex;flex-wrap:wrap;gap:16px;font-size:.75rem;color:var(--muted);margin:0 0 10px}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{display:inline-block;width:16px;height:8px;border-radius:4px}
+.legend i.dot{width:10px;height:10px;border-radius:50%;background:var(--ink)}
+.legend i.dia{width:9px;height:9px;border-radius:2px;background:var(--ref);transform:rotate(45deg)}
 
 /* Hero */
-.hero .big{font-size:clamp(2.8rem,9vw,4.6rem);font-weight:800;letter-spacing:-0.035em;line-height:1;margin:6px 0 8px}
-.hero .big small{font-size:.32em;font-weight:600;letter-spacing:0;color:var(--muted);margin-left:.4em;vertical-align:middle}
-.hero .what{font-size:1.05rem;max-width:60ch;margin:0}
-.chips{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 0}
-.chip{background:var(--sel);border-radius:999px;padding:2px 10px;font-size:.82rem}
-.strip{position:relative;height:46px;margin:30px 0 6px}
-.strip .s{position:absolute;top:10px;height:26px;border-radius:3px}
-.strip .o{background:var(--river-3)}
-.strip .i{background:var(--river-2)}
-.strip .m{top:4px;height:38px;width:3px;margin-left:-1.5px;background:var(--ink);border-radius:1px}
-.strip .e{top:10px;height:26px;background:repeating-linear-gradient(135deg,transparent 0 3px,color-mix(in srgb,var(--ink) 28%,transparent) 3px 5px)}
-.strip .ref{position:absolute;top:-14px;width:14px;height:14px;margin-left:-7px;background:var(--marker);transform:rotate(45deg);border-radius:2px}
-.axis{position:relative;height:18px;font-size:.75rem;color:var(--muted);border-top:1px solid var(--rule)}
+.hero-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.kicker{font-size:.85rem;color:var(--ink-2);font-weight:500;margin:0}
+.big{font-size:clamp(2.6rem,8vw,3.6rem);font-weight:700;letter-spacing:-.035em;line-height:1.05;margin:6px 0 4px}
+.moe{display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-size:.88rem;color:var(--muted)}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0 0}
+.chip{background:var(--wash);color:var(--accent-ink);border-radius:999px;padding:2px 10px;font-size:.78rem;font-weight:500}
+.flag{display:inline-flex;align-items:center;gap:4px;background:var(--warn-bg);color:var(--warn);border-radius:999px;padding:1px 8px 1px 6px;font-size:.72rem;font-weight:600;white-space:nowrap}
+.flag svg.i{width:12px;height:12px;stroke-width:2.2}
+.note{font-size:.78rem;color:var(--muted);margin:10px 0 0}
+.strip{position:relative;height:40px;margin:26px 0 4px}
+.strip .s{position:absolute;top:12px;height:16px;border-radius:8px}
+.strip .m{top:8px;width:24px;height:24px;margin-left:-12px}
+.strip .ref{top:-10px}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-top:20px}
+.tile{background:var(--rule-2);border-radius:10px;padding:10px 12px}
+.tile .l{display:flex;align-items:center;gap:6px;font-size:.72rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+.tile .v{font-size:1.1rem;font-weight:600;margin-top:2px;letter-spacing:-.01em;white-space:nowrap}
+.tile .v small{display:block;font-size:.72rem;color:var(--muted);font-weight:500;letter-spacing:0;white-space:normal}
+.empty{padding:18px;border:1px dashed var(--rule);border-radius:10px;color:var(--muted);margin-top:12px;font-size:.9rem}
+
+/* Range marks (shared by hero, rows and BLS rows) */
+.s{position:absolute}
+.s.o{background:var(--band-o)} .s.i{background:var(--band-i)}
+.ref-row .s.o{background:var(--ref-o)} .ref-row .s.i{background:var(--ref-i)}
+.s.m{border-radius:50%;background:var(--ink);box-shadow:0 0 0 2px var(--card)}
+.s.ref,.ref-row .s.m{border-radius:3px;background:var(--ref);transform:rotate(45deg);box-shadow:0 0 0 2px var(--card)}
+.strip .s.ref{width:14px;height:14px;margin-left:-7px}
+
+/* Rows */
+.rows{list-style:none;margin:0;padding:0}
+.rows li{display:grid;grid-template-columns:minmax(0,190px) minmax(0,1fr) 92px;grid-template-areas:"nm bar v";align-items:center;gap:4px 14px;padding:7px 8px;border-radius:8px}
+.rows li+li{border-top:1px solid var(--rule-2)}
+.rows li.sel{background:var(--wash);border-color:transparent}
+.rows li.sel+li{border-color:transparent}
+.rows li.click{cursor:pointer}
+.rows li.click:hover{background:var(--rule-2)}
+.rows li.sel:hover{background:var(--wash)}
+.rows .nm{grid-area:nm;font-size:.88rem;font-weight:500;min-width:0;overflow-wrap:anywhere;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.rows li.sel .nm{font-weight:600}
+.rows .v{grid-area:v;text-align:right;white-space:nowrap;font-weight:600;font-size:.88rem;font-variant-numeric:tabular-nums}
+.rows .v small{display:block;color:var(--muted);font-size:.72rem;font-weight:500;line-height:1.2}
+.bar{grid-area:bar;position:relative;height:16px}
+.bar .s{top:4px;height:8px;border-radius:4px}
+.bar .s.m{top:2px;width:12px;height:12px;margin-left:-6px}
+.ref-row .bar .s.m{top:3px;width:10px;height:10px;margin-left:-5px}
+.rows li.caut .bar .s.o,.rows li.caut .bar .s.i{opacity:.55}
+.rows li.axisrow{border:0;padding-top:0;padding-bottom:0}
+.axis{grid-area:bar;position:relative;height:18px;font-size:.7rem;color:var(--muted);font-variant-numeric:tabular-nums}
 .axis span{position:absolute;top:2px;transform:translateX(-50%);white-space:nowrap}
 .axis span:first-child{transform:none}
-.pct{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin:18px 0 0;padding:0;list-style:none}
-.pct li{border-top:3px solid var(--river-3);padding-top:6px;font-size:.78rem;color:var(--muted)}
-.pct li b{display:block;font-size:1rem;color:var(--ink)}
-.pct li.mid{border-color:var(--ink)}
-.pct li.q{border-color:var(--river-2)}
-.facts{margin:16px 0 0;font-size:.9rem;color:var(--muted);max-width:70ch}
-.facts p{margin:0 0 6px}
-.reflegend{display:flex;align-items:center;gap:8px;font-size:.88rem;margin-top:10px}
-.reflegend i{width:11px;height:11px;background:var(--marker);transform:rotate(45deg);display:inline-block;border-radius:2px;flex:none}
-.warnline{color:var(--warn);font-weight:600}
-.empty{padding:18px;border:1px dashed var(--rule);border-radius:8px;color:var(--muted)}
+.hero .axis{border-top:1px solid var(--rule)}
+.gone{font-size:.78rem;color:var(--muted);margin:10px 8px 0}
+@media (max-width:600px){
+  .rows li{grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"nm v" "bar bar";gap:2px 10px}
+  .rows .v small{display:inline;margin-left:4px}
+}
 
-/* Range rows */
-.rows{list-style:none;margin:0;padding:0}
-.rows li{padding:8px 6px;border-top:1px solid var(--rule)}
-.rows li:first-child{border-top:0}
-.rows li.sel{background:var(--sel);border-radius:6px}
-.rows li.click{cursor:pointer}
-.rows li.click:hover .nm{text-decoration:underline}
-.rl{display:flex;justify-content:space-between;gap:10px;font-size:.9rem;align-items:baseline}
-.rl .nm{font-weight:600;min-width:0;overflow-wrap:anywhere}
-.rl .v{white-space:nowrap;text-align:right}
-.rl .v small{color:var(--muted);font-size:.78rem;margin-left:4px}
-.bar{position:relative;height:12px;margin-top:5px}
-.bar .s{position:absolute;top:0;height:12px;border-radius:2px}
-.bar .o{background:var(--river-3)} .bar .i{background:var(--river-2)}
-.bar .m{width:2px;margin-left:-1px;background:var(--ink);top:-2px;height:16px}
-.bar .e{background:repeating-linear-gradient(135deg,transparent 0 2px,color-mix(in srgb,var(--ink) 28%,transparent) 2px 4px)}
-.rows li.caut .bar{opacity:.6}
-.flag{color:var(--warn);font-size:.78rem;font-weight:600;margin-left:6px;white-space:nowrap}
-.supp{font-size:.82rem;color:var(--muted);margin-top:2px}
-.legend{display:flex;flex-wrap:wrap;gap:14px;font-size:.78rem;color:var(--muted);margin:2px 0 10px}
-.legend span{display:inline-flex;align-items:center;gap:6px}
-.legend i{display:inline-block;width:18px;height:9px;border-radius:2px}
+/* Breakdown pills */
+.pills{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;margin:0 0 14px;padding-bottom:2px}
+.pills::-webkit-scrollbar{display:none}
+.pills button{flex:none;border:1px solid var(--rule);background:var(--card);border-radius:999px;padding:5px 12px;font-size:.82rem;font-weight:500;color:var(--ink-2);cursor:pointer}
+.pills button[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--card)}
+.pills button:disabled{opacity:.4;cursor:not-allowed}
+
+/* Tooltip */
+.tip{position:fixed;z-index:30;pointer-events:none;background:var(--card);color:var(--ink);border:1px solid var(--rule);border-radius:10px;
+  box-shadow:0 8px 24px rgba(16,24,40,.14);padding:10px 12px;font-size:.8rem;min-width:190px;opacity:0;transition:opacity .1s}
+.tip.show{opacity:1}
+.tip b{display:block;font-size:.85rem;margin-bottom:6px}
+.tip dl{display:grid;grid-template-columns:auto auto;gap:2px 14px;margin:0;font-variant-numeric:tabular-nums}
+.tip dt{color:var(--muted)} .tip dd{margin:0;text-align:right;font-weight:500}
 
 /* Tables */
-.tablewrap{overflow-x:auto;margin-top:12px;display:none}
+.tablewrap{overflow-x:auto;margin-top:14px;display:none;border:1px solid var(--rule);border-radius:10px}
 .tablewrap.show{display:block}
-table{border-collapse:collapse;font-size:.84rem;min-width:100%}
-th,td{padding:6px 8px;border-bottom:1px solid var(--rule);text-align:right;white-space:nowrap}
+table{border-collapse:collapse;font-size:.8rem;min-width:100%;font-variant-numeric:tabular-nums}
+th,td{padding:7px 10px;border-bottom:1px solid var(--rule-2);text-align:right;white-space:nowrap}
+tr:last-child td{border-bottom:0}
 th:first-child,td:first-child{text-align:left}
-th{font-weight:600;color:var(--muted)}
-.reftable{display:block}
+th{font-weight:600;color:var(--muted);background:var(--rule-2);font-size:.72rem;text-transform:uppercase;letter-spacing:.03em}
 
 /* Methodology */
-details.method summary{cursor:pointer;font-weight:700;font-size:1.1rem}
-details.method h3{font-size:1rem;margin:20px 0 4px}
-details.method p,details.method li{font-size:.92rem;max-width:72ch}
-details.method code{font-size:.85em;background:var(--sel);padding:1px 4px;border-radius:4px}
-footer{color:var(--muted);font-size:.82rem;padding:0 0 40px}
-@media (max-width:520px){ .wrap{padding:0 14px} main section{padding:16px} .pct li b{font-size:.88rem} }
-@media (prefers-reduced-motion: reduce){ *{scroll-behavior:auto!important} }
+details.method summary{cursor:pointer;list-style:none;display:flex;align-items:center;gap:8px;font-weight:600}
+details.method summary::-webkit-details-marker{display:none}
+details.method summary .chev{margin-left:auto;transition:transform .15s}
+details.method[open] summary .chev{transform:rotate(180deg)}
+.mgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:18px 28px;margin-top:16px}
+.mgrid h3{font-size:.75rem;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);margin:0 0 4px}
+.mgrid p,.mgrid li{font-size:.85rem;color:var(--ink-2);margin:0}
+.mgrid ul{margin:0;padding-left:18px}
+.mgrid code{font-size:.85em;background:var(--rule-2);padding:1px 4px;border-radius:4px}
+.mtools{display:flex;gap:6px;margin-top:8px}
+footer{color:var(--muted);font-size:.75rem;padding:0 0 40px}
+@media (max-width:520px){ .wrap{padding:0 14px} main section{padding:16px} header.top{padding-top:20px} .rows li{padding:7px 4px} }
+@media (prefers-reduced-motion: reduce){ *{transition:none!important} }
 </style>
 </head>
 <body>
 <div class="wrap">
 <header class="top">
-  <h1>What the Cincinnati region pays</h1>
-  <p class="lede">Annual wages for 24 metro areas within 180 miles of Cincinnati, from the Census Bureau’s American Community Survey (2020–2024, in 2024 dollars), with the Bureau of Labor Statistics’ May 2025 employer survey alongside as a market reference.</p>
+  <div class="ttl">
+    <p class="eyebrow">Cincinnati region · 24 metros</p>
+    <h1>Salary explorer</h1>
+  </div>
+  <p class="lede">Annual wages in 2024 dollars · ACS 2020–24 with BLS May 2025 as a market reference</p>
+  <button class="btn primary" id="copylink" aria-label="Copy link to this view"></button>
 </header>
+<div class="linkbox" id="linkbox"><input id="linkinput" readonly aria-label="Link to this view"></div>
 
 <div class="layout">
-<aside class="filters" id="filters">
-  <button class="ftoggle" id="ftoggle" aria-expanded="false" aria-controls="fbody">Filters<span class="sum" id="fsum"></span></button>
+<aside class="filters card" id="filters">
+  <button class="ftoggle" id="ftoggle" aria-expanded="false" aria-controls="fbody"><span class="txt"><b>Filters</b><span class="sum" id="fsum"></span></span></button>
   <div class="fbody" id="fbody">
     <div class="seg" role="group" aria-label="Which workers">
-      <button data-w="ftyr" aria-pressed="true">Full-time, year-round</button>
-      <button data-w="all" aria-pressed="false">All wage earners</button>
+      <button data-w="ftyr" aria-pressed="true">Full-time</button>
+      <button data-w="all" aria-pressed="false">All earners</button>
     </div>
-    <label class="f">Metro area<select id="f-metro"></select></label>
-    <label class="f">Discipline<select id="f-disc"></select></label>
-    <label class="f">Age<select id="f-age" data-dim="age"></select></label>
-    <label class="f">Gender<select id="f-sex" data-dim="sex"></select></label>
-    <label class="f">Education<select id="f-educ" data-dim="educ"></select></label>
-    <label class="f">Race and ethnicity<select id="f-race" data-dim="race"></select></label>
-    <label class="f">Industry<select id="f-ind" data-dim="ind"></select></label>
+    <label class="f">Metro<select id="f-metro"></select></label>
+    <label class="f">Role<select id="f-disc"></select></label>
+    <div class="more" id="more">
+      <button class="moretoggle" id="moretoggle" aria-expanded="false" aria-controls="morebody">More filters <span class="count" id="morecount"></span></button>
+      <div id="morebody" hidden>
+      <label class="f">Age<select id="f-age" data-dim="age"></select></label>
+      <label class="f">Gender<select id="f-sex" data-dim="sex"></select></label>
+      <label class="f">Education<select id="f-educ" data-dim="educ"></select></label>
+      <label class="f">Race and ethnicity<select id="f-race" data-dim="race"></select></label>
+      <label class="f">Industry<select id="f-ind" data-dim="ind"></select></label>
+      </div>
+    </div>
     <p class="fnote" id="fnote"></p>
-    <div class="factions">
-      <button class="btn" id="copylink">Copy link to this view</button>
-      <button class="btn" id="reset">Reset</button>
-    </div>
-    <div class="linkbox" id="linkbox"><input id="linkinput" readonly aria-label="Link to this view"></div>
-    <div class="toast" id="toast" role="status"></div>
+    <div class="factions"><button class="linkbtn" id="reset">Reset filters</button></div>
   </div>
 </aside>
 
 <main id="main">
-  <section class="hero" id="hero" aria-live="polite"></section>
+  <section class="hero card" id="hero" aria-live="polite"></section>
 
-  <section id="sec-metros">
-    <h2>Across the region’s metros</h2>
-    <p class="sub" id="metros-sub"></p>
+  <section class="card" id="sec-metros">
+    <div class="shead">
+      <div><h2>By metro</h2><p class="sub" id="metros-sub"></p></div>
+      <div class="tools" data-tools="metros"></div>
+    </div>
     <div class="legend" aria-hidden="true">
-      <span><i style="background:var(--river-3)"></i>10th–90th percentile</span>
-      <span><i style="background:var(--river-2)"></i>Middle 50%</span>
-      <span><i style="background:var(--ink);width:3px"></i>Median</span>
-      <span><i style="background:repeating-linear-gradient(135deg,transparent 0 2px,var(--muted) 2px 4px)"></i>Median ± margin of error</span>
+      <span><i style="background:var(--band-o)"></i>10th–90th pct</span>
+      <span><i style="background:var(--band-i)"></i>Middle 50%</span>
+      <span><i class="dot"></i>Median</span>
     </div>
     <ul class="rows" id="metro-rows"></ul>
-    <div class="tools"><button class="btn" data-view="metros" aria-pressed="false">View data</button><button class="btn" data-csv="metros">Download CSV</button></div>
+    <p class="gone" id="metro-gone"></p>
     <div class="tablewrap" id="tbl-metros"></div>
   </section>
 
-  <section id="sec-split">
-    <div class="head">
-      <div><h2 id="split-title">Broken down</h2><p class="sub" id="split-sub"></p></div>
-      <label class="f" style="margin:0">Break down by<select id="f-split"></select></label>
+  <section class="card" id="sec-split">
+    <div class="shead">
+      <div><h2 id="split-title">Breakdown</h2><p class="sub" id="split-sub"></p></div>
+      <div class="tools" data-tools="split"></div>
     </div>
+    <div class="pills" id="pills" role="group" aria-label="Break down by"></div>
     <ul class="rows" id="split-rows"></ul>
-    <div class="tools"><button class="btn" data-view="split" aria-pressed="false">View data</button><button class="btn" data-csv="split">Download CSV</button></div>
+    <p class="gone" id="split-gone"></p>
     <div class="tablewrap" id="tbl-split"></div>
   </section>
 
-  <section id="sec-ref">
-    <h2>Employer-reported market rates</h2>
-    <p class="sub" id="ref-sub"></p>
+  <section class="card" id="sec-ref">
+    <div class="shead">
+      <div><h2>Employer-reported rates</h2><p class="sub" id="ref-sub"></p></div>
+      <div class="tools" id="ref-tools" data-tools="ref"></div>
+    </div>
     <div id="ref-body"></div>
-    <div class="tools" id="ref-tools"><button class="btn" data-csv="ref">Download CSV</button></div>
+    <div class="tablewrap" id="tbl-ref"></div>
   </section>
 
-  <section>
+  <section class="card">
     <details class="method" id="method">
-      <summary>How these numbers are made</summary>
+      <summary>About the data</summary>
       <div id="method-body"></div>
     </details>
   </section>
 </main>
 </div>
-<footer>Sources: U.S. Census Bureau, American Community Survey 2020–2024 5-year Public Use Microdata Sample; U.S. Bureau of Labor Statistics, Occupational Employment and Wage Statistics, May 2025; Census 2020 tract-to-PUMA relationship and 2023 OMB metro delineations. Estimates are this page’s own calculations, not official Census or BLS figures.</footer>
+<footer>Sources: U.S. Census Bureau ACS 2020–2024 5-year PUMS; U.S. Bureau of Labor Statistics OEWS, May 2025. Estimates are this page’s own calculations, not official figures.</footer>
 </div>
+<div class="tip" id="tip" role="tooltip"></div>
+<div class="toast" id="toast" role="status"></div>
 
 <script id="data" type="application/json">__DATA__</script>
 <script>
@@ -356,14 +440,37 @@ function discName(d){
 function discPhrase(d){ return d === 'ALL' ? 'all occupations' : d === 'tech' ? 'all tech roles' : discName(d).toLowerCase(); }
 function valLabel(dim, v){ return dim === 'fam' ? FAM[v].label : META.dims[dim][v]; }
 
-/* ---------- filters UI ---------- */
 const $ = id => document.getElementById(id);
+
+/* ---------- icons ---------- */
+const ICON = {
+  table: '<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18M3 15h18M9 10v10"/></svg>',
+  down: '<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11m0 0-4-4m4 4 4-4M5 20h14"/></svg>',
+  link: '<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></svg>',
+  chev: '<svg class="i chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>',
+  warn: '<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 9v4m0 3.5v.01M10.3 3.9 2.4 18a2 2 0 0 0 1.7 3h15.8a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>',
+  sliders: '<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/></svg>',
+};
+function toolsHTML(k, csvOnly){
+  return (csvOnly ? '' : `<button class="btn icon" data-view="${k}" aria-pressed="false" aria-label="View data" title="View data">${ICON.table}</button>`) +
+    `<button class="btn icon" data-csv="${k}" aria-label="Download CSV" title="Download CSV">${ICON.down}</button>`;
+}
+document.querySelectorAll('[data-tools]').forEach(el => { el.innerHTML = toolsHTML(el.dataset.tools); });
+$('copylink').innerHTML = ICON.link + '<span>Share view</span>';
+$('ftoggle').insertAdjacentHTML('afterbegin', ICON.sliders);
+$('ftoggle').insertAdjacentHTML('beforeend', ICON.chev);
+$('moretoggle').insertAdjacentHTML('beforeend', ICON.chev);
+function setMore(on){ $('morebody').hidden = !on; $('moretoggle').setAttribute('aria-expanded', String(on)); }
+$('moretoggle').addEventListener('click', () => setMore($('morebody').hidden));
+document.querySelector('#method summary').insertAdjacentHTML('beforeend', ICON.chev);
+
+/* ---------- filters UI ---------- */
 function opt(v, t, sel){ return `<option value="${esc(v)}"${sel ? ' selected' : ''}>${esc(t)}</option>`; }
 function buildFilters(){
   let h = `<optgroup label="Combined">${opt('REGION', 'All 24 metros', S.metro === 'REGION')}${opt('SMALL', '20 smaller metros combined', S.metro === 'SMALL')}</optgroup><optgroup label="By distance from Cincinnati">`;
-  for (const m of META.metros) h += opt(m.id, `${m.name} (${Math.round(m.miles)} mi)${m.fit_flag ? ' †' : ''}`, S.metro === m.id);
+  for (const m of META.metros) h += opt(m.id, `${m.name} · ${Math.round(m.miles)} mi${m.fit_flag ? ' †' : ''}`, S.metro === m.id);
   $('f-metro').innerHTML = h + '</optgroup>';
-  let d = opt('ALL', 'All occupations', S.disc === 'ALL') + `<optgroup label="Tech roles">${opt('tech', 'All tech roles (7 families)', S.disc === 'tech')}`;
+  let d = opt('ALL', 'All occupations', S.disc === 'ALL') + `<optgroup label="Tech roles">${opt('tech', 'All tech roles', S.disc === 'tech')}`;
   for (const f of FAM) d += opt('fam:' + f.id, f.label, S.disc === 'fam:' + f.id);
   d += '</optgroup><optgroup label="Occupation groups">';
   for (const g of META.soc) d += opt('soc:' + g.id, g.label, S.disc === 'soc:' + g.id);
@@ -374,14 +481,13 @@ function buildFilters(){
     el.innerHTML = opt(-1, 'All', S[dim] < 0) + META.dims[dim].map((l, i) => opt(i, l, S[dim] === i)).join('');
     el.disabled = !tech && act.length > 0 && !act.includes(dim);
   }
+  $('morecount').textContent = act.length || '';
   document.querySelectorAll('.seg button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.w === S.w)));
-  $('fnote').textContent = NOTE || (tech ? 'Tech roles: combine any filters. Estimates are computed in your browser from survey records.'
-    : 'Outside tech roles, apply one of age, gender, education, race and ethnicity, or industry at a time.');
-  const sp = $('f-split');
+  $('fnote').textContent = NOTE || (!tech && act.length ? 'Outside tech roles, one demographic filter at a time.' : '');
   const opts = (tech ? ['fam'] : []).concat(DIMS);
-  sp.innerHTML = opts.map(o => `<option value="${o}"${S.split === o ? ' selected' : ''}${!tech && act.length && o !== act[0] ? ' disabled' : ''}>${DIMLABEL[o]}</option>`).join('');
+  $('pills').innerHTML = opts.map(o => `<button data-split="${o}" aria-pressed="${S.split === o}"${!tech && act.length && o !== act[0] ? ' disabled' : ''}>${DIMLABEL[o]}</button>`).join('');
   const parts = [S.w === 'ftyr' ? 'Full-time' : 'All earners', discName(S.disc), metroName(S.metro)].concat(act.map(x => META.dims[x][S[x]]));
-  $('fsum').textContent = parts.join(', ');
+  $('fsum').textContent = parts.join(' · ');
 }
 function onChange(){ S = normalize(S); writeHash(); render(); }
 $('f-metro').addEventListener('change', e => { S.metro = e.target.value; onChange(); });
@@ -391,17 +497,17 @@ for (const dim of DIMS) $('f-' + dim).addEventListener('change', e => {
   if (!isTech(S) && S[dim] >= 0){ for (const o of DIMS) if (o !== dim) S[o] = -1; S.split = dim; }
   onChange();
 });
-$('f-split').addEventListener('change', e => { S.split = e.target.value; onChange(); });
+$('pills').addEventListener('click', e => { const b = e.target.closest('[data-split]'); if (b && !b.disabled){ S.split = b.dataset.split; onChange(); } });
 document.querySelectorAll('.seg button').forEach(b => b.addEventListener('click', () => { S.w = b.dataset.w; onChange(); }));
 $('reset').addEventListener('click', () => { S = {...DEFAULT}; onChange(); });
 $('ftoggle').addEventListener('click', () => { const f = $('filters'); f.classList.toggle('open'); $('ftoggle').setAttribute('aria-expanded', f.classList.contains('open')); });
 window.addEventListener('hashchange', () => { S = readHash(); render(); });
 
-function toast(t){ $('toast').textContent = t; clearTimeout(toast.t); toast.t = setTimeout(() => $('toast').textContent = '', 4000); }
+function toast(t){ const el = $('toast'); el.textContent = t; el.classList.add('show'); clearTimeout(toast.t); toast.t = setTimeout(() => el.classList.remove('show'), 3000); }
 $('copylink').addEventListener('click', async () => {
   writeHash(); const url = location.href;
-  try { await navigator.clipboard.writeText(url); toast('Link copied. It opens this exact view.'); }
-  catch { $('linkbox').classList.add('show'); $('linkinput').value = url; $('linkinput').select(); toast('Copy the link above.'); }
+  try { await navigator.clipboard.writeText(url); toast('Link copied — it opens this exact view'); }
+  catch { $('linkbox').classList.add('show'); $('linkinput').value = url; $('linkinput').select(); toast('Copy the link above'); }
 });
 
 /* ---------- OEWS reference ---------- */
@@ -418,28 +524,46 @@ function refRows(sel){
 
 /* ---------- rendering helpers ---------- */
 function scaleMax(ests){
-  let mx = 0; for (const e of ests) if (e && !e.suppressed) mx = Math.max(mx, e.q[4]);
+  let mx = 0; for (const e of ests) if (e && !e.suppressed) mx = Math.max(mx, e.q[4] || e.q[3] || e.q[2] || 0);
   if (!mx) mx = 100000;
   const step = mx > 200000 ? 50000 : 25000; return Math.ceil(mx * 1.04 / step) * step;
 }
 const pc = (v, mx) => Math.max(0, Math.min(100, v / mx * 100)).toFixed(2) + '%';
-function barHTML(e, mx){
-  const [p10, p25, p50, p75, p90] = e.q, m = e.moe[2];
-  return `<div class="bar" aria-hidden="true"><div class="s o" style="left:${pc(p10, mx)};width:calc(${pc(p90, mx)} - ${pc(p10, mx)})"></div>` +
-    `<div class="s i" style="left:${pc(p25, mx)};width:calc(${pc(p75, mx)} - ${pc(p25, mx)})"></div>` +
-    `<div class="s e" style="left:${pc(Math.max(0, p50 - m), mx)};width:calc(${pc(p50 + m, mx)} - ${pc(Math.max(0, p50 - m), mx)})"></div>` +
-    `<div class="s m" style="left:${pc(p50, mx)}"></div></div>`;
+const span = (a, b, mx) => `left:${pc(a, mx)};width:calc(${pc(b, mx)} - ${pc(a, mx)})`;
+function marks(q, mx){
+  const [p10, p25, p50, p75, p90] = q;
+  return (p10 != null && p90 != null ? `<div class="s o" style="${span(p10, p90, mx)}"></div>` : '') +
+    (p25 != null && p75 != null ? `<div class="s i" style="${span(p25, p75, mx)}"></div>` : '') +
+    `<div class="s m" style="left:${pc(p50, mx)}"></div>`;
 }
-function rowHTML(label, e, mx, opts = {}){
-  const cls = [opts.sel ? 'sel' : '', e.caution ? 'caut' : '', opts.click ? 'click' : ''].join(' ');
-  const data = opts.click ? ` data-pick="${esc(opts.click)}" tabindex="0" role="button"` : '';
-  if (e.suppressed){
-    const why = e.unsupported ? 'Not available with this filter combination.' : e.unknownN ? 'Too few survey responses to estimate.' : `Too few survey responses to estimate (n=${e.n}).`;
-    return `<li class="${cls}"${data}><div class="rl"><span class="nm">${esc(label)}${opts.mark || ''}</span></div><div class="supp">${why}</div></li>`;
+const kk = v => '$' + Math.round(v / 1000) + 'k';
+const THIN = `<span class="flag" title="Under ${META.rules.caution_n} responses or a wide margin of error">${ICON.warn}Low sample</span>`;
+/* tooltip content, keyed per render */
+let TIPS = {}, TIPN = 0;
+function tipData(label, rows){ const k = 't' + (TIPN++); TIPS[k] = `<b>${esc(label)}</b><dl>${rows.map(([a, b]) => `<dt>${a}</dt><dd>${b}</dd>`).join('')}</dl>`; return k; }
+function estTip(label, e){
+  return tipData(label, [['Median', `${money(e.q[2])} ± ${money(e.moe[2]).slice(1)}`], ['Middle 50%', `${k$(e.q[1])} – ${k$(e.q[3])}`],
+    ['10th–90th', `${k$(e.q[0])} – ${k$(e.q[4])}`], ['Responses', e.n.toLocaleString('en-US')], ['Workers', '~' + sig2(e.pop)]]);
+}
+/* Rows with an estimate; suppressed ones are returned separately so they collapse into one line. */
+function rowsHTML(list, mx){
+  let h = '';
+  const gone = [];
+  for (const [label, e, opts = {}] of list){
+    if (e.suppressed){ gone.push(label + (opts.mark || '')); continue; }
+    const cls = [opts.sel ? 'sel' : '', e.caution ? 'caut' : '', opts.click ? 'click' : ''].join(' ');
+    const data = opts.click ? ` data-pick="${esc(opts.click)}" tabindex="0" role="button"` : '';
+    const aria = `${label}: median ${money(e.q[2])}, plus or minus ${money(e.moe[2])}; middle half ${money(e.q[1])} to ${money(e.q[3])}; ${e.n} responses${e.caution ? '; low sample, use with caution' : ''}`;
+    h += `<li class="${cls}"${data} data-tip="${estTip(label + (opts.mark || ''), e)}" aria-label="${esc(aria)}"><span class="nm">${esc(label)}${opts.mark || ''}${e.caution ? THIN : ''}</span>` +
+      `<div class="bar" aria-hidden="true">${marks(e.q, mx)}</div><span class="v">${k$(e.q[2])}<small>±${k$(e.moe[2]).slice(1)}</small></span></li>`;
   }
-  const aria = `${label}: median ${money(e.q[2])}, plus or minus ${money(e.moe[2])}; middle half ${money(e.q[1])} to ${money(e.q[3])}; ${e.n} responses${e.caution ? '; use with caution' : ''}`;
-  return `<li class="${cls}"${data} aria-label="${esc(aria)}"><div class="rl"><span class="nm">${esc(label)}${opts.mark || ''}${e.caution ? '<span class="flag">Thin sample</span>' : ''}</span>` +
-    `<span class="v">${k$(e.q[2])}<small>±${k$(e.moe[2]).slice(1)}, n=${e.n.toLocaleString('en-US')}</small></span></div>${barHTML(e, mx)}</li>`;
+  if (h) h += `<li class="axisrow" aria-hidden="true">${axisHTML(mx)}</li>`;
+  return {h, gone};
+}
+function goneText(gone, total){
+  if (!gone.length) return '';
+  return gone.length === total ? 'Too few survey responses for every group here — try removing a filter or choosing “All earners”.'
+    : `Too few responses to show: ${gone.join(', ')}.`;
 }
 function axisHTML(mx){
   const step = [25000, 50000, 100000].find(s => mx / s <= 4) || 100000; let h = '<div class="axis" aria-hidden="true">';
@@ -447,75 +571,88 @@ function axisHTML(mx){
   return h + '</div>';
 }
 const TABLE_COLS = ['Group', 'Responses (n)', 'Est. workers', 'P10', 'P25', 'Median', 'P75', 'P90', 'Median MOE (90%)', 'MOE % of median', 'Status'];
+const PLAIN_COLS = new Set(['Responses (n)', 'Employment', 'Miles', 'Miles from Cincinnati', 'PUMAs used', 'MOE % of median']);
 function tableRows(list){
   return list.map(([label, e]) => e.suppressed
     ? [label, e.unknownN || e.unsupported ? '' : e.n, '', '', '', '', '', '', '', '', e.unsupported ? 'not available' : 'suppressed (n<' + MIN_N + ')']
     : [label, e.n, Math.round(e.pop), ...e.q.map(Math.round), Math.round(e.moe[2]), Math.round(e.rel), e.caution ? 'caution' : 'ok']);
 }
 function tableHTML(cols, rows){
+  const fmt = (c, i) => typeof c !== 'number' || i === 0 ? esc(c) : PLAIN_COLS.has(cols[i]) ? c.toLocaleString('en-US') : money(c);
   return `<table><thead><tr>${cols.map(c => `<th scope="col">${esc(c)}</th>`).join('')}</tr></thead><tbody>` +
-    rows.map(r => `<tr>${r.map((c, i) => `<td>${typeof c === 'number' && i > 0 && cols[i] !== 'Responses (n)' && !/%/.test(cols[i]) ? money(c) : esc(c)}</td>`).join('')}</tr>`).join('') + '</tbody></table>';
+    rows.map(r => `<tr>${r.map((c, i) => `<td>${fmt(c, i)}</td>`).join('')}</tr>`).join('') + '</tbody></table>';
 }
 function csv(cols, rows){
   const q = v => { const s = v == null ? '' : String(v); return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; };
   return [cols, ...rows].map(r => r.map(q).join(',')).join('\n') + '\n';
 }
 
+/* ---------- tooltip (mouse hover and keyboard focus; touch uses the table view) ---------- */
+const TIP = $('tip');
+function showTip(el){
+  const k = el.dataset.tip; if (!TIPS[k]) return;
+  TIP.innerHTML = TIPS[k]; TIP.classList.add('show');
+  const r = el.querySelector('.bar') ? el.querySelector('.bar').getBoundingClientRect() : el.getBoundingClientRect(), t = TIP.getBoundingClientRect();
+  const x = Math.max(8, Math.min(window.innerWidth - t.width - 8, r.left + r.width / 2 - t.width / 2));
+  const y = r.top - t.height - 10 < 8 ? r.bottom + 10 : r.top - t.height - 10;
+  TIP.style.left = x + 'px'; TIP.style.top = y + 'px';
+}
+function hideTip(){ TIP.classList.remove('show'); }
+document.addEventListener('pointerover', e => { if (e.pointerType !== 'mouse') return; const el = e.target.closest('[data-tip]'); el ? showTip(el) : hideTip(); });
+document.addEventListener('focusin', e => { const el = e.target.closest && e.target.closest('[data-tip]'); el ? showTip(el) : hideTip(); });
+window.addEventListener('scroll', hideTip, {passive: true});
+
 /* ---------- downloads: claude.ai capability, else browser download ---------- */
 let DL = null, inClaude = typeof window.claude === 'object' && window.claude && typeof window.claude.use === 'function';
 if (inClaude) window.claude.use('downloads').then(x => { DL = x; }).catch(() => {});
 async function saveFile(name, text){
   if (inClaude){
-    if (!DL){ toast('Downloads aren’t available in this view. Use View data to copy the table.'); return; }
+    if (!DL){ toast('Downloads aren’t available here — use the table view'); return; }
     try { await DL.save({filename: name, data: text}); }
-    catch (e){ if (e && e.code === 'declined') return; toast(e && e.code === 'rate_limited' ? 'A save prompt is already open.' : 'Couldn’t save the file here. Use View data to copy the table.'); }
+    catch (e){ if (e && e.code === 'declined') return; toast(e && e.code === 'rate_limited' ? 'A save prompt is already open' : 'Couldn’t save the file — use the table view'); }
     return;
   }
   const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([text], {type: 'text/csv'})); a.download = name;
   document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500);
+  toast('CSV downloaded');
 }
 
 /* ---------- render ---------- */
 let LAST = {};
 function context(){
   const act = activeDims(S).map(d => ({dim: d, label: META.dims[d][S[d]]}));
-  return {act, who: S.w === 'ftyr' ? 'full-time, year-round workers' : 'all wage earners'};
+  return {act, who: S.w === 'ftyr' ? 'Full-time' : 'All earners'};
 }
 function render(){
-  buildFilters();
+  buildFilters(); hideTip(); TIPS = {}; TIPN = 0;
   const {act, who} = context();
   const csvMeta = [`# Selection: ${S.w === 'ftyr' ? 'full-time year-round' : 'all wage earners'}; ${discName(S.disc)}; ${metroName(S.metro)}${act.map(a => '; ' + DIMLABEL[a.dim] + ': ' + a.label).join('')}`,
                    '# Source: ACS 2020-2024 5-year PUMS, 2024 dollars; MOE = 90% via 80 SDR replicate weights. Link: ' + location.href];
+  const fit = METRO[S.metro] && METRO[S.metro].fit_flag;
 
   /* hero */
   const e = estimate(S), refs = S.disc === 'tech' ? null : refRows(S), lead = refs && refs.find(r => r.v && r.v[3] != null);
+  const kicker = `<p class="kicker">${esc(discName(S.disc))} · ${esc(metroName(S.metro))}${fit ? ' †' : ''}</p>`;
+  const chips = `<div class="chips"><span class="chip">${who}</span>${act.map(a => `<span class="chip">${esc(a.label)}</span>`).join('')}</div>`;
   let h = '';
   if (e.suppressed){
-    h = `<p class="what">${esc(discName(S.disc))} in ${esc(metroName(S.metro))}</p><div class="empty">${e.unsupported ? 'This combination isn’t available outside tech roles.' : `Too few survey responses to estimate this group${e.unknownN ? '' : ` (n=${e.n})`}.`} Try removing a filter, choosing “All wage earners”, or switching to a combined metro option.</div>`;
+    h = `${kicker}${chips}<div class="empty">${e.unsupported ? 'This combination isn’t available outside tech roles.' : `Not enough survey responses for this group${e.unknownN ? '' : ` (n=${e.n})`}.`} Try removing a filter, choosing “All earners”, or a combined metro.</div>`;
   } else {
-    const mx = scaleMax([e, lead ? {q: [0, 0, 0, 0, lead.v[3]]} : null]);
-    h = `<div class="big">${money(e.q[2])}<small>± ${money(e.moe[2])}</small></div>
-      <p class="what">Median annual wage for ${esc(who)} in ${esc(discPhrase(S.disc))}, ${esc(metroName(S.metro))}${METRO[S.metro] && METRO[S.metro].fit_flag ? ' †' : ''}</p>
-      ${act.length ? `<div class="chips">${act.map(a => `<span class="chip">${esc(a.label)}</span>`).join('')}</div>` : ''}
+    const mx = scaleMax([e, lead ? {q: [0, 0, lead.v[3], 0, 0]} : null]);
+    h = `<div class="hero-top"><div>${kicker}<div class="big">${money(e.q[2])}</div>
+        <div class="moe"><span>Median salary · ± ${money(e.moe[2])}</span>${e.caution ? THIN : ''}</div></div>
+        <div class="tools">${toolsHTML('hero')}</div></div>
+      ${chips}
       <div class="strip" role="img" aria-label="Wage distribution: 10th percentile ${money(e.q[0])}, median ${money(e.q[2])}, 90th percentile ${money(e.q[4])}">
-        <div class="s o" style="left:${pc(e.q[0], mx)};width:calc(${pc(e.q[4], mx)} - ${pc(e.q[0], mx)})"></div>
-        <div class="s i" style="left:${pc(e.q[1], mx)};width:calc(${pc(e.q[3], mx)} - ${pc(e.q[1], mx)})"></div>
-        <div class="s e" style="left:${pc(Math.max(0, e.q[2] - e.moe[2]), mx)};width:calc(${pc(e.q[2] + e.moe[2], mx)} - ${pc(Math.max(0, e.q[2] - e.moe[2]), mx)})"></div>
-        <div class="s m" style="left:${pc(e.q[2], mx)}"></div>
-        ${lead ? `<div class="ref" style="left:${pc(lead.v[3], mx)}" title="BLS median: ${esc(lead.name)}"></div>` : ''}
+        ${marks(e.q, mx)}${lead ? `<div class="s ref" style="left:${pc(lead.v[3], mx)}" title="BLS median: ${esc(lead.name)}"></div>` : ''}
       </div>${axisHTML(mx)}
-      <p class="facts" style="margin:14px 0 0">Percentiles: 10% of workers earn less than the 10th, 90% less than the 90th.</p>
-      <ul class="pct" style="margin-top:8px">
-        <li>10th<b>${k$(e.q[0])}</b></li><li class="q">25th<b>${k$(e.q[1])}</b></li>
-        <li class="mid">Median<b>${k$(e.q[2])}</b></li><li class="q">75th<b>${k$(e.q[3])}</b></li><li>90th<b>${k$(e.q[4])}</b></li>
-      </ul>
-      ${lead ? `<div class="reflegend"><i></i><span>BLS employer survey, May 2025: ${esc(lead.name)} median ${money(lead.v[3])}</span></div>` : ''}
-      <div class="facts">
-        <p>Based on ${e.n.toLocaleString('en-US')} survey responses, representing about ${sig2(e.pop)} workers. The median’s margin of error is ±${money(e.moe[2])} at 90% confidence (${Math.round(e.rel)}% of the median).</p>
-        ${e.caution ? `<p class="warnline">Thin sample: treat this estimate as approximate.</p>` : ''}
-        ${METRO[S.metro] && METRO[S.metro].fit_flag ? `<p>† Survey areas only approximately match this metro’s boundary (${Math.round(METRO[S.metro].coverage * 100)}% of its residents covered; ${Math.round(METRO[S.metro].purity * 100)}% of sampled residents live inside it).</p>` : ''}
+      <div class="tiles">
+        <div class="tile"><div class="l"><i style="display:inline-block;width:12px;height:6px;border-radius:3px;background:var(--band-i)"></i>Middle 50%</div><div class="v">${kk(e.q[1])}–${kk(e.q[3])}</div></div>
+        <div class="tile"><div class="l"><i style="display:inline-block;width:12px;height:6px;border-radius:3px;background:var(--band-o)"></i>10th–90th</div><div class="v">${kk(e.q[0])}–${kk(e.q[4])}</div></div>
+        <div class="tile"><div class="l">Sample</div><div class="v">${e.n.toLocaleString('en-US')}<small>responses · ~${sig2(e.pop)} workers</small></div></div>
+        ${lead ? `<div class="tile" title="${esc(lead.name)}"><div class="l"><i style="display:inline-block;width:8px;height:8px;border-radius:2px;background:var(--ref);transform:rotate(45deg)"></i>BLS median</div><div class="v">${kk(lead.v[3])}<small>employer-reported</small></div></div>` : ''}
       </div>
-      <div class="tools"><button class="btn" data-view="hero" aria-pressed="false">View data</button><button class="btn" data-csv="hero">Download CSV</button></div>
+      ${fit ? `<p class="note">† Survey areas only approximate this metro’s boundary (${Math.round(METRO[S.metro].coverage * 100)}% of residents covered).</p>` : ''}
       <div class="tablewrap" id="tbl-hero"></div>`;
   }
   $('hero').innerHTML = h;
@@ -525,9 +662,9 @@ function render(){
   const mrows = META.metros.map(m => [m, estimate({...S, metro: m.id})]);
   mrows.sort((a, b) => (a[1].suppressed - b[1].suppressed) || (b[1].suppressed ? a[0].miles - b[0].miles : b[1].q[2] - a[1].q[2]));
   const mmx = scaleMax(mrows.map(r => r[1]));
-  $('metros-sub').textContent = `Median and spread for ${who} in ${discPhrase(S.disc)}${act.length ? ' (' + act.map(a => a.label).join(', ') + ')' : ''}, sorted by median. Tap a metro to select it.`;
-  $('metro-rows').innerHTML = mrows.map(([m, est]) => rowHTML(m.name, est, mmx, {sel: m.id === S.metro, click: m.id, mark: m.fit_flag ? ' †' : ''})).join('') +
-    `<li style="border:0;padding:4px 6px 0">${axisHTML(mmx)}</li>`;
+  $('metros-sub').textContent = `${discName(S.disc)} · ${who}${act.length ? ' · ' + act.map(a => a.label).join(', ') : ''} · tap to select`;
+  const mr = rowsHTML(mrows.map(([m, est]) => [m.name, est, {sel: m.id === S.metro, click: m.id, mark: m.fit_flag ? ' †' : ''}]), mmx);
+  $('metro-rows').innerHTML = mr.h; $('metro-gone').textContent = goneText(mr.gone, mrows.length);
   LAST.metros = {cols: ['Metro', 'Miles from Cincinnati', ...TABLE_COLS.slice(1)], rows: tableRows(mrows.map(([m, est]) => [m.name, est])).map((r, i) => [r[0], Math.round(mrows[i][0].miles), ...r.slice(1)]), meta: csvMeta, file: 'by-metro'};
 
   /* split */
@@ -536,25 +673,36 @@ function render(){
   for (let v = 0; v < n; v++){
     const s2 = {...S};
     if (dim === 'fam') s2.disc = 'fam:' + FAM[v].id; else s2[dim] = v;
-    srows.push([valLabel(dim, v), estimate(s2), dim === 'fam' ? S.disc === s2.disc : S[dim] === v]);
+    srows.push([valLabel(dim, v), estimate(s2), {sel: dim === 'fam' ? S.disc === s2.disc : S[dim] === v}]);
   }
   const smx = scaleMax(srows.map(r => r[1]));
-  $('split-title').textContent = 'Broken down by ' + DIMLABEL[dim].toLowerCase();
-  $('split-sub').textContent = `${discName(S.disc)} in ${metroName(S.metro)}, ${who}.` + (dim !== 'fam' && S[dim] >= 0 ? ` Your ${DIMLABEL[dim].toLowerCase()} filter is highlighted.` : '') + (dim === 'ind' ? ' Industry is the employer’s industry.' : '');
-  $('split-rows').innerHTML = srows.map(([l, est, sel]) => rowHTML(l, est, smx, {sel})).join('') + `<li style="border:0;padding:4px 6px 0">${axisHTML(smx)}</li>`;
+  $('split-title').textContent = 'By ' + DIMLABEL[dim].toLowerCase();
+  $('split-sub').textContent = `${discName(S.disc)} · ${metroName(S.metro)} · ${who}` + (dim === 'ind' ? ' · employer’s industry' : '');
+  const sr = rowsHTML(srows, smx);
+  $('split-rows').innerHTML = sr.h; $('split-gone').textContent = goneText(sr.gone, srows.length);
   LAST.split = {cols: [DIMLABEL[dim], ...TABLE_COLS.slice(1)], rows: tableRows(srows.map(r => [r[0], r[1]])), meta: csvMeta, file: 'by-' + dim};
 
   /* OEWS reference */
   const rr = refRows(S);
   if (!rr){
-    $('ref-sub').textContent = 'BLS publishes each metro separately, so there’s no combined figure. Pick a single metro to see its employer-reported wages.';
+    $('ref-sub').textContent = 'BLS publishes each metro separately — pick a single metro to compare.';
     $('ref-body').innerHTML = ''; $('ref-tools').style.display = 'none'; LAST.ref = null;
   } else {
-    $('ref-sub').textContent = `BLS Occupational Employment and Wage Statistics, May 2025, for ${METRO[S.metro].name}. Employers report these for all workers in the occupation; they aren’t filtered by age, gender, education, race, or industry. Compare with care: see the methodology notes.`;
+    $('ref-sub').textContent = `BLS OEWS, May 2025 · ${METRO[S.metro].name} · all workers, not filtered by demographics`;
     const cols = ['Occupation (SOC)', 'Employment', 'P10', 'P25', 'Median', 'P75', 'P90'];
     const rows = rr.map(r => [`${r.name} (${r.occ.slice(0, 2)}-${r.occ.slice(2)})`, ...(r.v ? r.v.map(x => x == null ? 'not published' : x) : ['not published', '', '', '', '', ''])]);
-    $('ref-body').innerHTML = `<div class="tablewrap reftable"><table><thead><tr>${cols.map(c => `<th scope="col">${c}</th>`).join('')}</tr></thead><tbody>` +
-      rows.map(r => `<tr>${r.map((c, i) => `<td>${i === 0 ? esc(c) : typeof c === 'number' ? (i === 1 ? c.toLocaleString('en-US') : money(c)) : esc(c)}</td>`).join('')}</tr>`).join('') + '</tbody></table></div>';
+    const shown = rr.filter(r => r.v && r.v[3] != null).sort((a, b) => b.v[3] - a.v[3]);
+    const rmx = scaleMax(shown.map(r => ({q: r.v.slice(1)})));
+    let b = '';
+    for (const r of shown){
+      const [emp, ...q] = r.v;
+      const k = tipData(r.name, [['Median', money(q[2])], ['Middle 50%', q[1] != null && q[3] != null ? `${k$(q[1])} – ${k$(q[3])}` : 'not published'],
+        ['10th–90th', q[0] != null && q[4] != null ? `${k$(q[0])} – ${k$(q[4])}` : 'not published'], ['Jobs', emp != null ? emp.toLocaleString('en-US') : 'not published']]);
+      b += `<li data-tip="${k}" aria-label="${esc(r.name)}: BLS median ${money(q[2])}"><span class="nm">${esc(r.name)}</span><div class="bar" aria-hidden="true">${marks(q, rmx)}</div><span class="v">${k$(q[2])}${emp != null ? `<small>${sig2(emp)} jobs</small>` : ''}</span></li>`;
+    }
+    const missing = rr.filter(r => !(r.v && r.v[3] != null)).map(r => r.name);
+    $('ref-body').innerHTML = (b ? `<div class="legend" aria-hidden="true"><span><i style="background:var(--ref-o)"></i>10th–90th pct</span><span><i style="background:var(--ref-i)"></i>Middle 50%</span><span><i class="dia"></i>BLS median</span></div><ul class="rows ref-row">${b}<li class="axisrow" aria-hidden="true">${axisHTML(rmx)}</li></ul>` : '') +
+      (missing.length ? `<p class="gone">Not published by BLS for this metro: ${esc(missing.join(', '))}.</p>` : '');
     $('ref-tools').style.display = '';
     LAST.ref = {cols, rows, meta: [`# BLS OEWS May 2025, ${METRO[S.metro].name} (CBSA ${S.metro}), cross-industry, annual wages`], file: 'bls-oews-reference'};
   }
@@ -567,44 +715,33 @@ function showTable(k, on){
   if (!wrap || !LAST[k]) return;
   if (on){ wrap.innerHTML = tableHTML(LAST[k].cols, LAST[k].rows); wrap.classList.add('show'); OPEN.add(k); }
   else { wrap.classList.remove('show'); wrap.innerHTML = ''; OPEN.delete(k); }
-  if (btn){ btn.setAttribute('aria-pressed', String(on)); btn.textContent = on ? 'Hide data' : 'View data'; }
+  if (btn){ btn.setAttribute('aria-pressed', String(on)); btn.setAttribute('aria-label', on ? 'Hide data' : 'View data'); btn.title = on ? 'Hide data' : 'View data'; }
 }
 document.addEventListener('click', e => {
   const v = e.target.closest('[data-view]'); if (v){ showTable(v.dataset.view, !OPEN.has(v.dataset.view)); return; }
   const c = e.target.closest('[data-csv]');
   if (c){ const t = LAST[c.dataset.csv]; if (t) saveFile(`salary-explorer-${t.file}.csv`, t.meta.join('\n') + '\n' + csv(t.cols, t.rows)); return; }
-  const p = e.target.closest('[data-pick]'); if (p){ S.metro = p.dataset.pick; onChange(); $('hero').scrollIntoView({block: 'start'}); }
+  const p = e.target.closest('[data-pick]'); if (p){ S.metro = p.dataset.pick; onChange(); $('hero').scrollIntoView({block: 'start', behavior: 'smooth'}); }
 });
 document.addEventListener('keydown', e => { const p = e.target.closest && e.target.closest('[data-pick]'); if (p && (e.key === 'Enter' || e.key === ' ')){ e.preventDefault(); p.click(); } });
 
 /* ---------- methodology ---------- */
 function methodology(){
-  const r = META.rules, fams = FAM.map(f => `<li><b>${esc(f.label)}</b>: ACS codes ${f.acs.map(c => `<code>${c}</code>`).join(', ')}; BLS reference ${f.oews.map(c => esc(META.occnames[c] || c)).join(', ')}.</li>`).join('');
+  const r = META.rules, fams = FAM.map(f => `<li><b>${esc(f.label)}</b> — ${f.oews.map(c => esc(META.occnames[c] || c)).join(', ')}</li>`).join('');
   const fit = META.metros.map(m => [m.name, Math.round(m.miles), m.pumas_assigned, Math.round(m.coverage * 100) + '%', Math.round(m.purity * 100) + '%', m.fit_flag ? 'approximate' : 'good']);
   LAST.fit = {cols: ['Metro', 'Miles', 'PUMAs used', 'Residents covered', 'Sample inside metro', 'Boundary fit'], rows: fit, meta: ['# PUMA-to-metro fit, from data/geo/metros.csv'], file: 'metro-boundary-fit'};
-  $('method-body').innerHTML = `
-  <h3>Sources</h3>
-  <p>Wages and demographics come from the Census Bureau’s American Community Survey Public Use Microdata Sample, 2020–2024 five-year file, for Ohio, Kentucky, Indiana, and West Virginia (${META.counts.records.toLocaleString('en-US')} wage earners in the selected metros, ${META.counts.ftyr.toLocaleString('en-US')} of them full-time, year-round). Market reference rates come from the Bureau of Labor Statistics’ Occupational Employment and Wage Statistics, May 2025, metro-level, all industries.</p>
-  <h3>Who’s counted</h3>
-  <p>Wage and salary workers aged 16 and over with positive wage income in the past 12 months (private, nonprofit, and government employees; self-employed people are excluded because their business income isn’t wages). “Full-time, year-round” means usually working 35+ hours a week and 50+ weeks in the past year. Wages are the ACS wage and salary income field, adjusted to 2024 dollars with the Census Bureau’s own adjustment factor, so all five survey years are comparable. People are placed by where they live, not where they work.</p>
-  <h3>Geography</h3>
-  <p>Metros are 2023 OMB metropolitan statistical areas whose population center lies within 180 miles of downtown Cincinnati (${META.metros.length} areas; Toledo, Bowling Green, and Evansville fall just inside at 179–180 miles). The ACS microdata only identifies Public Use Microdata Areas (PUMAs, about 100,000+ people each), which don’t follow metro lines. A PUMA is assigned to a metro when at least half its 2020 population lives inside the metro, using Census tract populations. Metros marked † fit less well (below 85% on either measure) and should be read as “the metro and some surrounding area.” “20 smaller metros combined” is every metro except Cincinnati, Columbus, Indianapolis, and Louisville.</p>
-  <div class="tools"><button class="btn" data-view="fit" aria-pressed="false">View data</button><button class="btn" data-csv="fit">Download CSV</button></div>
-  <div class="tablewrap" id="tbl-fit"></div>
-  <h3>Tech families</h3>
-  <p>Seven families are built from 2018 Standard Occupational Classification codes as published in the ACS. The ACS combines data scientists, statisticians, and mathematicians into one code, so “Data & analytics” can’t isolate data scientists; the BLS reference can.</p><ul>${fams}</ul>
-  <h3>Statistics</h3>
-  <p>Percentiles (10th, 25th, median, 75th, 90th) are weighted with the ACS person weight: each is the lowest wage at which the cumulative weight reaches that share of the total. Margins of error use the Census Bureau’s successive difference replication method with the 80 replicate weights: the estimate is recomputed with each replicate weight, and MOE = 1.645 × √(4/80 × Σ(replicate − estimate)²), a 90% confidence interval. Groups with fewer than ${r.min_n} survey responses are hidden. Groups with fewer than ${r.caution_n} responses, or a median MOE above ${r.caution_rel}% of the median, are marked “thin sample.” Top wage values in the ACS are capped (top-coded) by state, which can pull down the 90th percentile for the highest-paid groups.</p>
-  <h3>How the page computes</h3>
-  <p>Tech roles ship as ${META.counts.tech.toLocaleString('en-US')} anonymized survey records with their weights, so any combination of filters is computed live in your browser with full replicate-weight margins of error. Other disciplines use precomputed tables (every metro × discipline, with up to one of age, gender, education, race and ethnicity, or industry) because the full file is too large for a web page. Both paths use identical formulas.</p>
-  <h3>Why the ACS and BLS numbers differ</h3>
-  <p>They measure different things. The ACS asks households; people describe their own job title and recall last year’s pay, and the five-year file pools 2020–2024, so it lags recent raises even after inflation adjustment. The BLS survey asks employers about current pay for each position, May 2025, using strict occupational definitions. Expect BLS medians to run higher for most professional roles, especially management titles that people self-report more broadly.</p>
-  <h3>Gender and race categories</h3>
-  <p>The ACS records sex as male or female; it’s shown here as gender. Race and ethnicity: Hispanic of any race, then non-Hispanic White, Black, Asian, and other or multiracial.</p>
-  <h3>Code and data</h3>
-  <p>The full pipeline (download, crosswalk, estimates) and every intermediate table are in the project repository so results can be reproduced and checked.</p>`;
+  $('method-body').innerHTML = `<div class="mgrid">
+  <div><h3>Sources</h3><p>Census ACS 2020–2024 5-year microdata for OH, KY, IN and WV (${META.counts.records.toLocaleString('en-US')} wage earners; ${META.counts.ftyr.toLocaleString('en-US')} full-time). BLS OEWS May 2025 for employer-reported rates.</p></div>
+  <div><h3>Who’s counted</h3><p>Employees 16+ with wages, by where they live. Full-time = 35+ hrs/week and 50+ weeks. All years in 2024 dollars.</p></div>
+  <div><h3>Geography</h3><p>${META.metros.length} metros within 180 mi of Cincinnati. Survey areas (PUMAs) are matched to metros by population; † marks a looser fit.</p>
+    <div class="mtools">${toolsHTML('fit')}</div></div>
+  <div><h3>Statistics</h3><p>Weighted percentiles; 90% margins of error from 80 replicate weights. Hidden under ${r.min_n} responses; “Low sample” under ${r.caution_n} or when the margin exceeds ${r.caution_rel}% of the median.</p></div>
+  <div><h3>ACS vs. BLS</h3><p>ACS is self-reported pay from past years; BLS is current employer pay. Expect BLS medians to run higher.</p></div>
+  <div><h3>Tech families</h3><ul>${fams}</ul></div>
+  </div><div class="tablewrap" id="tbl-fit"></div>`;
 }
 
+if (activeDims(readHash()).length) setMore(true);
 S = readHash(); writeHash(); methodology(); render();
 </script>
 </body>
