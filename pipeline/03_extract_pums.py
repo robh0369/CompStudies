@@ -21,6 +21,10 @@ for s in STATES:
 d = pd.concat(out, ignore_index=True)
 
 d['wage'] = (d.WAGP * d.ADJINC / 1e6).round().astype('int32')      # 2024 dollars
+# Survey year: ADJINC is one value per data year, larger for earlier years (more inflation to 2024).
+adj = sorted(d.ADJINC.unique(), reverse=True)
+assert len(adj) == len(ACS_YEARS), f'expected {len(ACS_YEARS)} ADJINC values, got {adj}'
+d['yr'] = d.ADJINC.map({a: i for i, a in enumerate(adj)}).astype('int8')   # index into ACS_YEARS
 d['ftyr'] = (d.WKHP >= 35) & (d.WKWN >= 50)
 d['soc2'] = d.SOCP.str[:2]
 fam_of = {c: f for f, _, codes, _ in FAMILIES for c in codes}
@@ -32,6 +36,6 @@ d['race'] = np.select([d.HISP != 1, d.RAC1P == 1, d.RAC1P == 2, d.RAC1P == 6], [
 d['ind'] = d.INDP.map(ind_prefix).map(INDUSTRY).map({v: i for i, v in enumerate(DIMS['ind'])})
 for c in ['PWGTP'] + REPS:
     d[c] = d[c].astype('int16')
-keep = ['CBSA', 'wage', 'ftyr', 'SOCP', 'soc2', 'fam', 'age', 'sex', 'educ', 'race', 'ind', 'PWGTP'] + REPS
+keep = ['CBSA', 'wage', 'ftyr', 'yr', 'SOCP', 'soc2', 'fam', 'age', 'sex', 'educ', 'race', 'ind', 'PWGTP'] + REPS
 d[keep].to_pickle(INTERIM/'workers.pkl')
 print(f'{len(d):,} wage earners, {d.ftyr.sum():,} full-time year-round; unmapped industry: {d.ind.isna().sum()}')

@@ -14,6 +14,9 @@ SMALL_ID, REGION_ID = 'SMALL', 'REGION'
 
 REPS = [f'PWGTP{i}' for i in range(1, 81)]
 QS = [0.10, 0.25, 0.50, 0.75, 0.90]
+ACS_YEARS = [2020, 2021, 2022, 2023, 2024]   # survey years in the 5-year file (trend view)
+OEWS_YEARS = [2019, 2020, 2021, 2022, 2023, 2024, 2025]   # OEWS May releases (trend view)
+OEWS_AREA_ALIAS = {'19380': '19430'}   # Dayton's CBSA code before the 2023 delineation
 MIN_N = 30                                    # suppress below this
 CAUTION_N, CAUTION_REL = 100, 30              # caution if n<100 or median MOE >30% of median
 

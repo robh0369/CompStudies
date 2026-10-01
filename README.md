@@ -6,8 +6,9 @@ shows its sample size and margin of error, and every view has a shareable link.
 
 **Live page:** https://robh0369.github.io/CompStudies/ (GitHub Pages serves `docs/index.html` from `main`).
 
-**Explainer video (45 s):** [docs/demo/salary-explorer-demo.mp4](docs/demo/salary-explorer-demo.mp4). Rebuild with
-`node promo/render.mjs` (Playwright + ffmpeg; see the header of `promo/render.mjs`). Music is the TaskList promo track.
+**Explainer video (45 s):** [16:9](docs/demo/salary-explorer-demo.mp4) and [9:16](docs/demo/salary-explorer-demo-vertical.mp4), also
+linked from the page header ("45-second tour"). Rebuild with `node promo/render.mjs [--vertical]` (Playwright + ffmpeg;
+see the header of `promo/render.mjs`). Music is the TaskList promo track.
 
 ## Data
 | Source | Use |
@@ -51,6 +52,29 @@ The map data (`data/web/geo.json`) comes from `node pipeline/make_geo.mjs <dir>`
 cities.json and topojson-client; map pins sit on each metro’s first-named city.
 BLS blocks anonymous downloads; set `BLS_USER_AGENT` to a contact email. The Census API now requires a key,
 so the pipeline uses bulk files only.
+
+## Trend view
+Every chart row (and the detail card) can open a year-by-year view once the build includes trend data:
+- **ACS survey years 2020–2024**, recovered from `ADJINC` (one value per data year), all in 2024 dollars. Tech roles compute
+  live with any filters; other occupations use per-year cube cells (no demographic filter).
+- **BLS OEWS May 2019–2025** for the matching occupation in the selected metro, as published (nominal).
+The page hides the drill-down until `META.years`, the microdata `yr` column and `oewsHist` exist, so a full rebuild
+(`make all`, with www2.census.gov and www.bls.gov reachable) turns it on.
+
+## Data roadmap
+Public sources worth adding, in priority order (host the build needs in brackets):
+| # | Dataset | What it adds |
+|---|---|---|
+| 1 | ACS survey year from `ADJINC` (coded) [www2.census.gov] | Trend view, survey side |
+| 2 | BLS OEWS May 2019–2024 metro files (coded) [www.bls.gov] | Trend view, employer side |
+| 3 | DOL OFLC prevailing wage levels I–IV by occupation × metro [flag.dol.gov] | Data-based seniority bands to replace the level rule of thumb |
+| 4 | BEA Regional Price Parities for metros [apps.bea.gov] | Cost-of-living-adjusted pay, so metros compare on purchasing power |
+| 5 | BLS Employment Cost Index, wages and salaries [download.bls.gov] | Ages the 2020–24 survey pay to today's market |
+| 6 | PUMS fields already in the raw files: work from home (`JWTRNS`), employer type (`COW`) [www2.census.gov] | Remote-share stat and a private / nonprofit / government filter |
+| 7 | BLS Employment Projections (10-year) [www.bls.gov] | Growth and annual openings per occupation (national) |
+| 8 | DOL H-1B LCA disclosure data [flag.dol.gov] | Employer-offered wages by specific job title in these metros |
+Equity grants, bonus targets and benefits are not in any public source (they live in licensed surveys such as Radford or
+Mercer, or crowd-sourced sites).
 
 ## Caveats
 ACS wages are self-reported for the prior 12 months and pooled over 2020–2024; OEWS is employer-reported for

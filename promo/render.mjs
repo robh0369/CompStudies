@@ -2,6 +2,7 @@
 // then encodes H.264 + the music track with ffmpeg. Same method and music as the TaskList promo.
 //   node promo/render.mjs              full render -> docs/demo/salary-explorer-demo.mp4 (+ poster.jpg)
 //   node promo/render.mjs --stills     one PNG per scene -> promo/frames/   (add times: --stills 6.5 12)
+//   add --vertical for the 9:16 cut -> docs/demo/salary-explorer-demo-vertical.mp4 (+ poster-vertical.jpg)
 // Needs Node 18+, Playwright (PLAYWRIGHT_MODULE=/path/to/playwright/index.mjs if not installed locally),
 // Chromium (CHROMIUM_PATH if Playwright's own browser isn't installed) and ffmpeg on PATH (or FFMPEG=/path).
 import { spawn } from 'node:child_process';
@@ -13,9 +14,9 @@ import { fileURLToPath } from 'node:url';
 const here = dirname(fileURLToPath(import.meta.url)), root = join(here, '..');
 const { chromium } = await import(process.env.PLAYWRIGHT_MODULE || 'playwright');
 const FFMPEG = process.env.FFMPEG || 'ffmpeg';
-const FPS = 30, DURATION = 45, W = 1920, H = 1080;
-const MUSIC = join(here, 'music.m4a'), OUT_DIR = join(root, 'docs', 'demo'), OUT = join(OUT_DIR, 'salary-explorer-demo.mp4');
-const stills = process.argv.includes('--stills');
+const stills = process.argv.includes('--stills'), vertical = process.argv.includes('--vertical'), sfx = vertical ? '-vertical' : '';
+const FPS = 30, DURATION = 45, W = vertical ? 1080 : 1920, H = vertical ? 1920 : 1080;
+const MUSIC = join(here, 'music.m4a'), OUT_DIR = join(root, 'docs', 'demo'), OUT = join(OUT_DIR, `salary-explorer-demo${sfx}.mp4`);
 
 // Static server for the repo, so the stage and the page share an origin.
 const TYPES = {'.html': 'text/html', '.js': 'text/javascript', '.mjs': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.woff2': 'font/woff2', '.svg': 'image/svg+xml'};
@@ -31,7 +32,7 @@ const browser = await chromium.launch({ executablePath: process.env.CHROMIUM_PAT
 const page = await browser.newPage({ viewport: { width: W, height: H } });
 await page.route(/fonts\.(googleapis|gstatic)\.com/, r => r.abort());   // fonts come from promo/fonts
 page.on('pageerror', e => console.error('page error:', e.message));
-await page.goto(`${base}/promo/stage.html`);
+await page.goto(`${base}/promo/stage.html${vertical ? '?layout=vertical' : ''}`);
 await page.evaluate(() => window.ready);
 
 const frameAt = async (t, type = 'jpeg') => {
@@ -42,9 +43,9 @@ const frameAt = async (t, type = 'jpeg') => {
 if (stills){
   const dir = join(here, 'frames'); mkdirSync(dir, { recursive: true });
   const cuts = await page.evaluate(() => window.CUTS);
-  const times = process.argv.slice(3).map(Number).filter(n => !Number.isNaN(n));
+  const times = process.argv.slice(2).map(Number).filter(n => !Number.isNaN(n));
   const list = times.length ? times : cuts.slice(0, -1).map((c, i) => (c + cuts[i + 1]) / 2);
-  for (const t of list) writeFileSync(join(dir, `t${t.toFixed(2)}.png`), await frameAt(t, 'png'));
+  for (const t of list) writeFileSync(join(dir, `${vertical ? 'v' : 't'}${t.toFixed(2)}.png`), await frameAt(t, 'png'));
   console.log(`wrote ${list.length} stills to ${dir}`);
 } else {
   mkdirSync(OUT_DIR, { recursive: true });
@@ -71,7 +72,7 @@ if (stills){
   enc.stdin.end();
   await done;
   // Poster: the end card.
-  writeFileSync(join(OUT_DIR, 'poster.jpg'), await frameAt(43, 'jpeg'));
+  writeFileSync(join(OUT_DIR, `poster${sfx}.jpg`), await frameAt(43, 'jpeg'));
   console.log(`wrote ${OUT}`);
 }
 await browser.close();

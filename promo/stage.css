@@ -46,3 +46,29 @@ html,body{margin:0;background:#06142A}
 #cursor{position:absolute;left:0;top:0;width:34px;height:34px;pointer-events:none;filter:drop-shadow(0 4px 8px rgba(0,0,0,.35));z-index:10}
 #cursor svg{position:absolute;left:-6px;top:-4px}
 .ripple{position:absolute;left:-30px;top:-30px;width:60px;height:60px;border-radius:50%;border:4px solid #F2C14E;opacity:0}
+
+/* 9:16 layout: captions on top, the page's phone layout in a phone frame below, taps instead of a pointer */
+body.vertical #stage{width:1080px;height:1920px}
+body.vertical .brand{left:80px;top:80px;font-size:30px}
+body.vertical #caption{left:80px;top:170px;width:920px}
+body.vertical .cap{width:920px}
+body.vertical .cap .eb{font-size:24px;margin-bottom:16px}
+body.vertical .cap h2{font-size:72px;margin-bottom:18px}
+body.vertical .cap p{font-size:32px}
+body.vertical #steps{left:50%;transform:translateX(-50%);bottom:40px}
+body.vertical #steps i{width:44px;height:6px}
+body.vertical #win{left:110px;top:600px;width:860px;height:1240px;border-radius:56px;background:#0B2545;padding:20px 0 20px;
+  box-shadow:0 40px 90px rgba(0,0,0,.5),0 0 0 10px #12305A,0 0 0 12px rgba(255,255,255,.12)}
+body.vertical .chrome{display:none}
+body.vertical .viewport{width:860px;height:1200px;border-radius:38px}
+body.vertical .card-center{padding:0 70px}
+body.vertical .card-center h1{font-size:96px}
+body.vertical .card-center p{font-size:36px}
+body.vertical .card-center .eb{font-size:24px}
+body.vertical .pill{font-size:34px;padding:18px 34px}
+body.vertical .src{font-size:24px;line-height:1.5}
+#cursor.tap svg{display:none}
+#cursor.tap::before{content:"";position:absolute;left:-26px;top:-26px;width:52px;height:52px;border-radius:50%;background:rgba(255,255,255,.55);
+  border:3px solid rgba(11,37,69,.35);box-shadow:0 6px 16px rgba(0,0,0,.25)}
+#cursor.tap.down::before{background:rgba(242,193,78,.8);transform:scale(.85)}
+#cursor.tap .ripple{left:-40px;top:-40px;width:80px;height:80px}

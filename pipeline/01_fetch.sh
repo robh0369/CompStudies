@@ -17,4 +17,6 @@ OE=https://download.bls.gov/pub/time.series/oe
 for f in oe.release oe.area oe.occupation oe.datatype; do curl -sf -A "$UA" -o $f "$OE/$f"; done
 # Keep only metro (areatype M), cross-industry series for OH/KY/IN/WV-area metros (filtered again in 04)
 curl -sf -A "$UA" "$OE/oe.data.0.Current" | grep -E '^OEUM00[0-9]{5}000000' > oe_metro_all.txt
+# OEWS May releases 2019-2024, metro files (May 2025 comes from the time-series files above). Trend view only.
+for yy in 19 20 21 22 23 24; do curl -sf -A "$UA" -o oesm${yy}ma.zip "https://www.bls.gov/oes/special-requests/oesm${yy}ma.zip"; done
 echo "fetched: $(ls | wc -l) files"
