@@ -44,6 +44,8 @@ pip install -r requirements.txt
 BLS_USER_AGENT="you@example.com" make all
 ```
 Design-only changes to `web/template.html`: `make template` rebuilds the page from the data already inlined in it.
+The map data (`data/web/geo.json`) comes from `node pipeline/make_geo.mjs <dir>` using the npm packages us-atlas,
+cities.json and topojson-client; map pins sit on each metro’s first-named city.
 BLS blocks anonymous downloads; set `BLS_USER_AGENT` to a contact email. The Census API now requires a key,
 so the pipeline uses bulk files only.
 

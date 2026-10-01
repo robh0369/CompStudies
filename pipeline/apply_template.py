@@ -13,6 +13,7 @@ if not m:
 tpl = (ROOT/'web/template.html').read_text()
 if tpl.count('__DATA__') != 1:
     sys.exit('web/template.html must contain exactly one __DATA__ placeholder')
-page.write_text(tpl.replace('__DATA__', m.group(1)))
+geo = (ROOT/'data/web/geo.json').read_text().replace('</', '<\\/')
+page.write_text(tpl.replace('__GEO__', geo).replace('__DATA__', m.group(1)))
 print('docs/index.html rebuilt from template')
 subprocess.run([sys.executable, str(ROOT/'pipeline/verify_page.py')], check=True)

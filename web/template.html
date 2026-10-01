@@ -6,173 +6,247 @@
 <title>Cincinnati Salary Explorer</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
 <style>
-/* Palette: neutral slate UI, one blue accent for ACS ranges, orange for the BLS reference.
-   Chart steps validated with the dataviz palette checker (ordinal ramp + 2-slot categorical, light and dark). */
+/* Palette: navy, sky blue, gold and white. Chart steps validated with the dataviz palette checker
+   (ACS band + map ramps as ordinal ramps, blue vs gold as categorical; light and dark surfaces). */
 :root{
-  --bg:#F6F7F9; --card:#FFFFFF; --ink:#0E1726; --ink-2:#475467; --muted:#667085; --rule:#E4E7EC; --rule-2:#F0F2F5;
-  --accent:#2A78D6; --accent-ink:#1C5CAB; --wash:#EEF4FD;
-  --band-o:#86B6EF; --band-i:#2A78D6;
-  --ref:#EB6834; --ref-o:#AAB2BE; --ref-i:#6B7585;
-  --warn:#B54708; --warn-bg:#FEF6EE;
-  --shadow:0 1px 2px rgba(16,24,40,.04),0 1px 3px rgba(16,24,40,.06);
+  --bg:#F3F7FC; --card:#FFFFFF; --ink:#0B1F3A; --ink-2:#34496A; --muted:#5A6B84; --rule:#D9E3EF; --rule-2:#EDF3FA;
+  --navy:#0B2545; --navy-2:#13315C; --sky:#4EA8DE; --sky-ink:#1D5F99; --wash:#E7F2FC;
+  --gold:#E8B004; --gold-ink:#8A6200; --gold-wash:#FFF6DA;
+  --band-o:#7FB8E6; --band-i:#2E86C1; --dot:#0B2545;
+  --ref:#B98500; --ref-o:#D9A520; --ref-i:#9A6B00; --ref-dot:#0B2545;
+  --ramp-0:#7FB8E6; --ramp-1:#4A9AD8; --ramp-2:#2E78B8; --ramp-3:#1D5A94; --ramp-4:#0B2545;
+  --land:#E4EFFA; --land-2:#F5F9FD; --line:#BED2E8;
+  --warn:#9A5B00; --warn-bg:#FFF4D6;
+  --shadow:0 1px 2px rgba(11,37,69,.05),0 2px 8px rgba(11,37,69,.06);
   --font:"Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --display:"Plus Jakarta Sans", "Inter", system-ui, sans-serif;
   color-scheme:light;
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
-    --bg:#0D1117; --card:#161B22; --ink:#E6EDF3; --ink-2:#B1BAC4; --muted:#8B949E; --rule:#2A313C; --rule-2:#1F252E;
-    --accent:#3987E5; --accent-ink:#86B6EF; --wash:#14243A;
-    --band-o:#184F95; --band-i:#3987E5;
-    --ref:#D95926; --ref-o:#4A5363; --ref-i:#7D8796;
-    --warn:#FDB022; --warn-bg:#2B2111;
+    --bg:#06142A; --card:#0D2142; --ink:#F2F6FB; --ink-2:#C3D0E2; --muted:#8FA3BF; --rule:#1E3A5F; --rule-2:#132B4D;
+    --navy:#0A1C38; --navy-2:#12305A; --sky:#4EA8DE; --sky-ink:#8CC8F0; --wash:#123259;
+    --gold:#F2C14E; --gold-ink:#F2C14E; --gold-wash:#2E2610;
+    --band-o:#1F5C99; --band-i:#4EA8DE; --dot:#FFFFFF;
+    --ref:#B8860B; --ref-o:#7A5A12; --ref-i:#E0B23F; --ref-dot:#FFFFFF;
+    --ramp-0:#245A92; --ramp-1:#2E78B8; --ramp-2:#4EA8DE; --ramp-3:#8CC8F0; --ramp-4:#D4ECFB;
+    --land:#12305A; --land-2:#0B1F3F; --line:#24497A;
+    --warn:#F2C14E; --warn-bg:#2E2610;
     --shadow:none; color-scheme:dark;
   }
 }
 :root[data-theme="dark"]{
-  --bg:#0D1117; --card:#161B22; --ink:#E6EDF3; --ink-2:#B1BAC4; --muted:#8B949E; --rule:#2A313C; --rule-2:#1F252E;
-  --accent:#3987E5; --accent-ink:#86B6EF; --wash:#14243A;
-  --band-o:#184F95; --band-i:#3987E5;
-  --ref:#D95926; --ref-o:#4A5363; --ref-i:#7D8796;
-  --warn:#FDB022; --warn-bg:#2B2111;
+  --bg:#06142A; --card:#0D2142; --ink:#F2F6FB; --ink-2:#C3D0E2; --muted:#8FA3BF; --rule:#1E3A5F; --rule-2:#132B4D;
+  --navy:#0A1C38; --navy-2:#12305A; --sky:#4EA8DE; --sky-ink:#8CC8F0; --wash:#123259;
+  --gold:#F2C14E; --gold-ink:#F2C14E; --gold-wash:#2E2610;
+  --band-o:#1F5C99; --band-i:#4EA8DE; --dot:#FFFFFF;
+  --ref:#B8860B; --ref-o:#7A5A12; --ref-i:#E0B23F; --ref-dot:#FFFFFF;
+  --ramp-0:#245A92; --ramp-1:#2E78B8; --ramp-2:#4EA8DE; --ramp-3:#8CC8F0; --ramp-4:#D4ECFB;
+  --land:#12305A; --land-2:#0B1F3F; --line:#24497A;
+  --warn:#F2C14E; --warn-bg:#2E2610;
   --shadow:none; color-scheme:dark;
 }
-:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+/* The detail card sits on navy in both themes, so it always uses the dark-surface chart steps. */
+.on-navy{
+  --card:#0B2545; --ink:#FFFFFF; --ink-2:#D3E1F2; --muted:#9DB4D3; --rule:#24497A; --rule-2:#143563; --wash:#1A4478;
+  --band-o:#1F5C99; --band-i:#4EA8DE; --dot:#FFFFFF; --ref:#F2C14E; --sky-ink:#8CC8F0;
+  --warn:#F2C14E; --warn-bg:#3A2F0E; color-scheme:dark;
+}
+:root{box-sizing:border-box}
 *,*::before,*::after{box-sizing:inherit}
 body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font);font-size:15px;line-height:1.5;
-  -webkit-font-smoothing:antialiased;-webkit-text-size-adjust:100%}
-a{color:var(--accent-ink)}
+  -webkit-font-smoothing:antialiased;-webkit-text-size-adjust:100%;padding-bottom:env(safe-area-inset-bottom,0px)}
+a{color:var(--sky-ink)}
 button,select,input{font:inherit;color:inherit}
-:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:6px}
+:focus-visible{outline:2px solid var(--gold);outline-offset:2px;border-radius:6px}
 svg.i{width:16px;height:16px;flex:none;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
-.wrap{max-width:1160px;margin:0 auto;padding:0 20px}
+.wrap{max-width:1180px;margin:0 auto;padding:0 20px}
+h1,h2,.big,.tile .v,.disp{font-family:var(--display)}
 
-/* Header */
-header.top{display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"ttl btn" "lede btn";align-items:end;column-gap:16px;padding:28px 0 20px}
+/* Header band */
+.band{background:linear-gradient(135deg,#0B2545 0%,#13315C 60%,#1D5F99 100%);color:#fff;padding-top:env(safe-area-inset-top,0px)}
+header.top{display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"ttl btn" "lede btn";align-items:end;column-gap:16px;padding:26px 0 24px}
 header.top .ttl{grid-area:ttl} header.top .lede{grid-area:lede} header.top #copylink{grid-area:btn}
-@media (max-width:600px){header.top{grid-template-areas:"ttl btn" "lede lede"} header.top #copylink span{display:none} header.top #copylink{padding:9px}}
-.eyebrow{font-size:.75rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--accent-ink);margin:0 0 6px}
-h1{font-size:clamp(1.6rem,3.6vw,2.1rem);line-height:1.15;letter-spacing:-.02em;margin:0;font-weight:700}
-.lede{color:var(--muted);margin:6px 0 0;font-size:.92rem}
+.eyebrow{font-size:.72rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#F2C14E;margin:0 0 6px}
+h1{font-size:clamp(1.9rem,4.4vw,2.7rem);line-height:1.05;letter-spacing:-.03em;margin:0;font-weight:800}
+h1 span{color:#8CC8F0}
+.lede{color:#C9D9EE;margin:8px 0 0;font-size:.92rem}
+@media (max-width:600px){header.top{grid-template-areas:"ttl btn" "lede lede";padding:20px 0 20px} header.top #copylink span{display:none} header.top #copylink{padding:10px}}
 
 /* Buttons */
-.btn{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--rule);background:var(--card);border-radius:8px;
-  padding:7px 12px;cursor:pointer;font-size:.85rem;font-weight:500;color:var(--ink-2);white-space:nowrap;box-shadow:var(--shadow)}
-.btn:hover{border-color:var(--accent);color:var(--ink)}
-.btn.primary{background:var(--ink);color:var(--card);border-color:var(--ink)}
-.btn.primary:hover{opacity:.9;color:var(--card)}
-.btn.icon{padding:6px 9px;box-shadow:none}
-.btn[aria-pressed="true"]{background:var(--wash);border-color:var(--accent);color:var(--accent-ink)}
-.linkbtn{background:none;border:0;padding:0;color:var(--accent-ink);font-size:.85rem;font-weight:500;cursor:pointer}
+.btn{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--rule);background:var(--card);border-radius:9px;
+  padding:7px 12px;cursor:pointer;font-size:.85rem;font-weight:600;color:var(--ink-2);white-space:nowrap}
+.btn:hover{border-color:var(--sky);color:var(--ink)}
+.btn.gold{background:#F2C14E;color:#0B2545;border-color:#F2C14E;box-shadow:0 2px 10px rgba(242,193,78,.35)}
+.btn.gold:hover{background:#FFD36E;color:#0B2545}
+.btn.icon{padding:6px 9px}
+.btn[aria-pressed="true"]{background:var(--wash);border-color:var(--sky);color:var(--sky-ink)}
+.linkbtn{background:none;border:0;padding:0;color:var(--sky-ink);font-size:.85rem;font-weight:600;cursor:pointer}
 
 /* Layout */
-.layout{display:grid;grid-template-columns:minmax(0,1fr);gap:20px;padding-bottom:40px}
+.layout{display:grid;grid-template-columns:minmax(0,1fr);gap:20px;padding:20px 0 40px}
 .layout>*{min-width:0}
-@media (min-width:920px){.layout{grid-template-columns:272px minmax(0,1fr);align-items:start}
-  aside.filters{position:sticky;top:calc(16px + env(safe-area-inset-top,0px))}}
-.card{background:var(--card);border:1px solid var(--rule);border-radius:14px;box-shadow:var(--shadow)}
+@media (min-width:940px){.layout{grid-template-columns:286px minmax(0,1fr);align-items:start}
+  aside.filters{position:sticky;top:16px;max-height:calc(100vh - 32px);overflow:auto}}
+.card{background:var(--card);border:1px solid var(--rule);border-radius:16px;box-shadow:var(--shadow)}
 
 /* Filters */
 aside.filters{padding:16px}
 .ftoggle{display:none;width:100%;align-items:center;gap:10px;text-align:left;background:none;border:0;padding:0;cursor:pointer}
-.ftoggle b{font-weight:600}
+.ftoggle b{font-weight:700;font-family:var(--display)}
 .ftoggle .sum{display:block;color:var(--muted);font-size:.82rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .ftoggle .txt{flex:1;min-width:0}
-.ftoggle .chev{transition:transform .15s}
+.chev{transition:transform .15s}
 aside.filters.open .ftoggle .chev{transform:rotate(180deg)}
-@media (max-width:919px){.ftoggle{display:flex}
+@media (max-width:939px){.ftoggle{display:flex}
   aside.filters:not(.open) .fbody{display:none}
   aside.filters.open .fbody{margin-top:14px}}
-.seg{display:grid;grid-template-columns:1fr 1fr;background:var(--rule-2);border-radius:9px;padding:3px;margin-bottom:16px}
-.seg button{border:0;background:transparent;padding:6px 4px;border-radius:7px;cursor:pointer;font-size:.82rem;font-weight:500;color:var(--muted)}
-.seg button[aria-pressed="true"]{background:var(--card);color:var(--ink);box-shadow:0 1px 2px rgba(16,24,40,.12)}
-label.f{display:block;font-size:.75rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin:0 0 14px}
-label.f select{display:block;width:100%;margin-top:5px;padding:8px 10px;border:1px solid var(--rule);border-radius:8px;
-  background:var(--card);font-size:.92rem;font-weight:500;color:var(--ink);text-transform:none;letter-spacing:0}
-label.f select:disabled{opacity:.45}
-.more{border-top:1px solid var(--rule);padding-top:12px;margin-top:2px}
-.moretoggle{width:100%;cursor:pointer;background:none;border:0;padding:0;display:flex;align-items:center;gap:8px;font-size:.88rem;font-weight:600;margin-bottom:2px}
-.moretoggle .chev{margin-left:auto;transition:transform .15s}
+.seg{display:grid;grid-template-columns:1fr 1fr;background:var(--rule-2);border-radius:10px;padding:3px}
+.seg button{border:0;background:transparent;padding:6px 8px;border-radius:8px;cursor:pointer;font-size:.82rem;font-weight:600;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--navy);color:#fff;box-shadow:0 1px 3px rgba(11,37,69,.25)}
+.fbody .seg{margin-bottom:14px}
+.flabel{display:block;font-size:.7rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin:0 0 5px}
+.fhint{font-size:.78rem;color:var(--muted);margin:-4px 0 12px}
+.fhint:empty{display:none}
+
+/* Multi-select picker */
+.ms{margin:0 0 12px}
+.ms-btn{display:flex;align-items:center;gap:8px;width:100%;text-align:left;border:1px solid var(--rule);background:var(--card);border-radius:10px;padding:8px 10px;cursor:pointer}
+.ms-btn:hover{border-color:var(--sky)}
+.ms-btn[aria-expanded="true"]{border-color:var(--sky);box-shadow:0 0 0 3px var(--wash)}
+.ms-btn[aria-expanded="true"] .chev{transform:rotate(180deg)}
+.ms-val{flex:1;min-width:0;font-size:.9rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ms-n{background:var(--gold);color:#0B2545;border-radius:999px;font-size:.7rem;font-weight:700;padding:0 7px;line-height:18px}
+.ms-n:empty{display:none}
+.ms-panel{border:1px solid var(--rule);border-radius:10px;margin-top:6px;max-height:280px;overflow:auto;padding:4px;background:var(--card)}
+.ms-group{font-size:.68rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;padding:8px 8px 2px}
+.ms-opt{display:flex;align-items:center;gap:10px;padding:7px 8px;border-radius:7px;cursor:pointer;font-size:.88rem}
+.ms-opt:hover{background:var(--rule-2)}
+.ms-opt input{position:absolute;opacity:0;pointer-events:none}
+.ms-box{width:18px;height:18px;flex:none;border:1.5px solid var(--muted);border-radius:5px;display:grid;place-items:center;background:var(--card)}
+.ms-panel.single .ms-box{border-radius:50%}
+.ms-opt input:checked+.ms-box{background:var(--navy);border-color:var(--navy)}
+.ms-opt input:checked+.ms-box::after{content:"";width:9px;height:5px;border:2px solid #fff;border-top:0;border-right:0;transform:translateY(-1px) rotate(-45deg)}
+.ms-panel.single .ms-opt input:checked+.ms-box::after{width:8px;height:8px;border:0;border-radius:50%;background:#fff;transform:none}
+.ms-opt input:focus-visible+.ms-box{outline:2px solid var(--gold);outline-offset:2px}
+.ms-opt input:disabled~*{opacity:.4}
+.ms-opt small{margin-left:auto;color:var(--muted);font-size:.75rem}
+:root:not([data-theme="light"]) .ms-opt input:checked+.ms-box{border-color:var(--sky)}
+.more{border-top:1px solid var(--rule);padding-top:12px;margin-top:4px}
+.moretoggle{width:100%;cursor:pointer;background:none;border:0;padding:0;display:flex;align-items:center;gap:8px;font-size:.9rem;font-weight:700;font-family:var(--display)}
+.moretoggle .chev{margin-left:auto}
 .moretoggle[aria-expanded="true"] .chev{transform:rotate(180deg)}
 .moretoggle[aria-expanded="true"]{margin-bottom:14px}
-.count{background:var(--accent);color:#fff;border-radius:999px;font-size:.7rem;padding:0 7px;line-height:18px}
-.count:empty{display:none}
-.fnote{font-size:.8rem;color:var(--muted);margin:0 0 12px}
-.fnote:empty{display:none}
 .factions{display:flex;justify-content:flex-end;border-top:1px solid var(--rule);padding-top:12px;margin-top:4px}
 .linkbox{display:none;margin:0 0 16px}
 .linkbox.show{display:block}
 .linkbox input{width:100%;padding:8px 10px;border:1px solid var(--rule);border-radius:8px;background:var(--card);font-size:.82rem}
-.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--card);
-  font-size:.85rem;font-weight:500;padding:9px 16px;border-radius:999px;opacity:0;pointer-events:none;transition:opacity .2s;z-index:20;max-width:90vw}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:#0B2545;color:#fff;border:1px solid #24497A;
+  font-size:.85rem;font-weight:600;padding:9px 16px;border-radius:999px;opacity:0;pointer-events:none;transition:opacity .2s;z-index:20;max-width:90vw}
 .toast.show{opacity:1}
 
 /* Sections */
 main section{padding:20px;margin-bottom:20px}
-.shead{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px}
-h2{font-size:1rem;font-weight:600;margin:0;letter-spacing:-.005em}
+.shead{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px;flex-wrap:wrap}
+h2{font-size:1.12rem;font-weight:800;margin:0;letter-spacing:-.015em}
 .sub{color:var(--muted);font-size:.82rem;margin:2px 0 0}
-.tools{display:flex;gap:6px;flex:none}
+.tools{display:flex;gap:6px;flex:none;align-items:center}
 .legend{display:flex;flex-wrap:wrap;gap:16px;font-size:.75rem;color:var(--muted);margin:0 0 10px}
 .legend span{display:inline-flex;align-items:center;gap:6px}
 .legend i{display:inline-block;width:16px;height:8px;border-radius:4px}
-.legend i.dot{width:10px;height:10px;border-radius:50%;background:var(--ink)}
+.legend i.dot{width:10px;height:10px;border-radius:50%;background:var(--dot);box-shadow:0 0 0 1px var(--rule)}
 .legend i.dia{width:9px;height:9px;border-radius:2px;background:var(--ref);transform:rotate(45deg)}
+.legend i.dia.ink{background:var(--ref-dot);box-shadow:0 0 0 1px var(--rule)}
+.seg.small{display:inline-grid;grid-template-columns:auto auto}
+.seg.small button{display:inline-flex;align-items:center;gap:6px;padding:5px 12px}
 
-/* Hero */
+/* Map */
+.map{position:relative;margin:0 -4px}
+.map svg{display:block;width:100%;height:auto}
+.map .st{fill:var(--land-2);stroke:var(--line);stroke-width:1.2;stroke-linejoin:round}
+.map .st.core{fill:var(--land)}
+.map .slabel{font:700 13px var(--font);letter-spacing:.14em;fill:var(--muted);opacity:.75}
+.map .slabel.far{opacity:.4}
+.map .ring{fill:none;stroke:var(--sky);stroke-width:1.5;opacity:.45}
+.mk{position:absolute;transform:translate(-50%,-50%);border-radius:50%;border:2px solid var(--card);padding:0;cursor:pointer;
+  box-shadow:0 1px 3px rgba(11,37,69,.3);transition:transform .12s}
+.mk::before{content:"";position:absolute;inset:-8px;border-radius:50%}
+.mk:hover{transform:translate(-50%,-50%) scale(1.12);z-index:3}
+.mk.thin{background:transparent!important;border:2px solid var(--muted);box-shadow:none}
+.mk.sel{outline:3px solid var(--gold);outline-offset:1px;z-index:2}
+.mlab{position:absolute;transform:translate(-50%,0);font-size:.72rem;font-weight:700;color:var(--ink);white-space:nowrap;pointer-events:none;
+  text-shadow:0 0 3px var(--card),0 0 3px var(--card),0 0 3px var(--card);line-height:1.1;text-align:center}
+.mlab small{display:block;font-weight:600;color:var(--ink-2);font-size:.68rem}
+.mapkey{display:flex;flex-wrap:wrap;align-items:center;gap:8px 18px;font-size:.75rem;color:var(--muted);margin-top:10px}
+.ramp{display:inline-flex;align-items:center;gap:6px}
+.ramp i{display:inline-block;width:90px;height:8px;border-radius:4px}
+.mapkey .ex{display:inline-flex;align-items:center;gap:6px}
+.mapkey .ex i{display:inline-block;width:12px;height:12px;border-radius:50%}
+
+/* Detail (hero) */
+.hero.card{background:linear-gradient(160deg,#0B2545 0%,#13315C 100%);border-color:#13315C;color:#fff}
 .hero-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
-.kicker{font-size:.85rem;color:var(--ink-2);font-weight:500;margin:0}
-.big{font-size:clamp(2.6rem,8vw,3.6rem);font-weight:700;letter-spacing:-.035em;line-height:1.05;margin:6px 0 4px}
+.kicker{font-size:.85rem;color:var(--ink-2);font-weight:600;margin:0}
+.kicker b{color:#F2C14E;font-weight:700;text-transform:uppercase;letter-spacing:.08em;font-size:.7rem;display:block;margin-bottom:2px}
+.big{font-size:clamp(2.9rem,9vw,4.4rem);font-weight:800;letter-spacing:-.04em;line-height:1;margin:8px 0 6px}
 .moe{display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-size:.88rem;color:var(--muted)}
-.chips{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0 0}
-.chip{background:var(--wash);color:var(--accent-ink);border-radius:999px;padding:2px 10px;font-size:.78rem;font-weight:500}
-.flag{display:inline-flex;align-items:center;gap:4px;background:var(--warn-bg);color:var(--warn);border-radius:999px;padding:1px 8px 1px 6px;font-size:.72rem;font-weight:600;white-space:nowrap}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:14px 0 0}
+.chip{display:inline-flex;align-items:center;gap:4px;background:var(--wash);color:var(--ink);border:1px solid var(--rule);border-radius:999px;padding:2px 6px 2px 10px;font-size:.78rem;font-weight:600}
+.chip.fixed{padding-right:10px}
+.chip button{border:0;background:none;color:var(--muted);cursor:pointer;padding:0 2px;line-height:1;font-size:1rem}
+.chip button:hover{color:#fff}
+.flag{display:inline-flex;align-items:center;gap:4px;background:var(--warn-bg);color:var(--warn);border-radius:999px;padding:1px 8px 1px 6px;font-size:.72rem;font-weight:700;white-space:nowrap}
 .flag svg.i{width:12px;height:12px;stroke-width:2.2}
 .note{font-size:.78rem;color:var(--muted);margin:10px 0 0}
-.strip{position:relative;height:40px;margin:26px 0 4px}
-.strip .s{position:absolute;top:12px;height:16px;border-radius:8px}
-.strip .m{top:8px;width:24px;height:24px;margin-left:-12px}
-.strip .ref{top:-10px}
+.strip{position:relative;height:40px;margin:24px 0 4px}
+.strip .s{top:12px;height:16px;border-radius:8px}
+.strip .s.m{top:8px;width:24px;height:24px;margin-left:-12px}
+.strip .s.ref{top:-10px;width:14px;height:14px;margin-left:-7px}
 .tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-top:20px}
-.tile{background:var(--rule-2);border-radius:10px;padding:10px 12px}
-.tile .l{display:flex;align-items:center;gap:6px;font-size:.72rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
-.tile .v{font-size:1.1rem;font-weight:600;margin-top:2px;letter-spacing:-.01em;white-space:nowrap}
-.tile .v small{display:block;font-size:.72rem;color:var(--muted);font-weight:500;letter-spacing:0;white-space:normal}
-.empty{padding:18px;border:1px dashed var(--rule);border-radius:10px;color:var(--muted);margin-top:12px;font-size:.9rem}
+.tile{background:var(--rule-2);border:1px solid var(--rule);border-radius:12px;padding:10px 12px}
+.tile .l{display:flex;align-items:center;gap:6px;font-size:.68rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.07em}
+.tile .v{font-size:1.25rem;font-weight:800;margin-top:2px;letter-spacing:-.02em;white-space:nowrap}
+.tile .v small{display:block;font-family:var(--font);font-size:.72rem;color:var(--muted);font-weight:500;letter-spacing:0;white-space:normal}
+.empty{padding:18px;border:1px dashed var(--rule);border-radius:12px;color:var(--muted);margin-top:12px;font-size:.9rem}
+.hero .btn{background:transparent;border-color:var(--rule);color:var(--ink-2)}
+.hero .btn:hover{border-color:#F2C14E;color:#fff}
 
-/* Range marks (shared by hero, rows and BLS rows) */
+/* Range marks */
 .s{position:absolute}
 .s.o{background:var(--band-o)} .s.i{background:var(--band-i)}
 .ref-row .s.o{background:var(--ref-o)} .ref-row .s.i{background:var(--ref-i)}
-.s.m{border-radius:50%;background:var(--ink);box-shadow:0 0 0 2px var(--card)}
-.s.ref,.ref-row .s.m{border-radius:3px;background:var(--ref);transform:rotate(45deg);box-shadow:0 0 0 2px var(--card)}
-.strip .s.ref{width:14px;height:14px;margin-left:-7px}
+.s.m{border-radius:50%;background:var(--dot);box-shadow:0 0 0 2px var(--card)}
+.s.ref{border-radius:3px;background:var(--ref);transform:rotate(45deg);box-shadow:0 0 0 2px var(--card)}
+.ref-row .s.m{border-radius:2px;background:var(--ref-dot);transform:rotate(45deg)}
 
 /* Rows */
 .rows{list-style:none;margin:0;padding:0}
-.rows li{display:grid;grid-template-columns:minmax(0,190px) minmax(0,1fr) 92px;grid-template-areas:"nm bar v";align-items:center;gap:4px 14px;padding:7px 8px;border-radius:8px}
+.rows li{display:grid;grid-template-columns:minmax(0,190px) minmax(0,1fr) 92px;grid-template-areas:"nm bar v";align-items:center;gap:4px 14px;padding:7px 8px;border-radius:9px}
 .rows li+li{border-top:1px solid var(--rule-2)}
-.rows li.sel{background:var(--wash);border-color:transparent}
+.rows li.sel{background:var(--gold-wash);box-shadow:inset 3px 0 0 var(--gold);border-color:transparent}
 .rows li.sel+li{border-color:transparent}
 .rows li.click{cursor:pointer}
 .rows li.click:hover{background:var(--rule-2)}
-.rows li.sel:hover{background:var(--wash)}
+.rows li.sel:hover{background:var(--gold-wash)}
 .rows .nm{grid-area:nm;font-size:.88rem;font-weight:500;min-width:0;overflow-wrap:anywhere;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
-.rows li.sel .nm{font-weight:600}
-.rows .v{grid-area:v;text-align:right;white-space:nowrap;font-weight:600;font-size:.88rem;font-variant-numeric:tabular-nums}
-.rows .v small{display:block;color:var(--muted);font-size:.72rem;font-weight:500;line-height:1.2}
+.rows li.sel .nm{font-weight:700}
+.rows .v{grid-area:v;text-align:right;white-space:nowrap;font-weight:700;font-size:.92rem;font-variant-numeric:tabular-nums;font-family:var(--display)}
+.rows .v small{display:block;color:var(--muted);font-size:.72rem;font-weight:500;line-height:1.2;font-family:var(--font)}
 .bar{grid-area:bar;position:relative;height:16px}
 .bar .s{top:4px;height:8px;border-radius:4px}
 .bar .s.m{top:2px;width:12px;height:12px;margin-left:-6px}
 .ref-row .bar .s.m{top:3px;width:10px;height:10px;margin-left:-5px}
 .rows li.caut .bar .s.o,.rows li.caut .bar .s.i{opacity:.55}
-.rows li.axisrow{border:0;padding-top:0;padding-bottom:0}
+.rows li.axisrow{border:0;padding-top:0;padding-bottom:0;box-shadow:none;background:none}
 .axis{grid-area:bar;position:relative;height:18px;font-size:.7rem;color:var(--muted);font-variant-numeric:tabular-nums}
 .axis span{position:absolute;top:2px;transform:translateX(-50%);white-space:nowrap}
 .axis span:first-child{transform:none}
+.axis span:last-child:not(:first-child){transform:translateX(-100%)}
 .hero .axis{border-top:1px solid var(--rule)}
 .gone{font-size:.78rem;color:var(--muted);margin:10px 8px 0}
+.gone:empty{display:none}
 @media (max-width:600px){
   .rows li{grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"nm v" "bar bar";gap:2px 10px}
   .rows .v small{display:inline;margin-left:4px}
@@ -181,54 +255,56 @@ h2{font-size:1rem;font-weight:600;margin:0;letter-spacing:-.005em}
 /* Breakdown pills */
 .pills{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;margin:0 0 14px;padding-bottom:2px}
 .pills::-webkit-scrollbar{display:none}
-.pills button{flex:none;border:1px solid var(--rule);background:var(--card);border-radius:999px;padding:5px 12px;font-size:.82rem;font-weight:500;color:var(--ink-2);cursor:pointer}
-.pills button[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--card)}
+.pills button{flex:none;border:1px solid var(--rule);background:var(--card);border-radius:999px;padding:5px 12px;font-size:.82rem;font-weight:600;color:var(--ink-2);cursor:pointer}
+.pills button[aria-pressed="true"]{background:var(--navy);border-color:var(--navy);color:#fff}
+:root:not([data-theme="light"]) .pills button[aria-pressed="true"]{border-color:var(--sky)}
 .pills button:disabled{opacity:.4;cursor:not-allowed}
 
 /* Tooltip */
-.tip{position:fixed;z-index:30;pointer-events:none;background:var(--card);color:var(--ink);border:1px solid var(--rule);border-radius:10px;
-  box-shadow:0 8px 24px rgba(16,24,40,.14);padding:10px 12px;font-size:.8rem;min-width:190px;opacity:0;transition:opacity .1s}
+.tip{position:fixed;z-index:30;pointer-events:none;background:#0B2545;color:#fff;border:1px solid #24497A;border-radius:12px;
+  box-shadow:0 10px 30px rgba(11,37,69,.3);padding:10px 12px;font-size:.8rem;min-width:200px;opacity:0;transition:opacity .1s}
 .tip.show{opacity:1}
-.tip b{display:block;font-size:.85rem;margin-bottom:6px}
+.tip b{display:block;font-family:var(--display);font-size:.9rem;margin-bottom:6px}
 .tip dl{display:grid;grid-template-columns:auto auto;gap:2px 14px;margin:0;font-variant-numeric:tabular-nums}
-.tip dt{color:var(--muted)} .tip dd{margin:0;text-align:right;font-weight:500}
+.tip dt{color:#9DB4D3} .tip dd{margin:0;text-align:right;font-weight:600}
+.tip .hint{color:#F2C14E;font-size:.72rem;margin-top:6px}
 
 /* Tables */
-.tablewrap{overflow-x:auto;margin-top:14px;display:none;border:1px solid var(--rule);border-radius:10px}
+.tablewrap{overflow-x:auto;margin-top:14px;display:none;border:1px solid var(--rule);border-radius:12px;background:var(--card);color:var(--ink)}
 .tablewrap.show{display:block}
 table{border-collapse:collapse;font-size:.8rem;min-width:100%;font-variant-numeric:tabular-nums}
 th,td{padding:7px 10px;border-bottom:1px solid var(--rule-2);text-align:right;white-space:nowrap}
 tr:last-child td{border-bottom:0}
 th:first-child,td:first-child{text-align:left}
-th{font-weight:600;color:var(--muted);background:var(--rule-2);font-size:.72rem;text-transform:uppercase;letter-spacing:.03em}
+th{font-weight:700;color:var(--muted);background:var(--rule-2);font-size:.7rem;text-transform:uppercase;letter-spacing:.05em}
 
 /* Methodology */
-details.method summary{cursor:pointer;list-style:none;display:flex;align-items:center;gap:8px;font-weight:600}
-details.method summary::-webkit-details-marker{display:none}
-details.method summary .chev{margin-left:auto;transition:transform .15s}
-details.method[open] summary .chev{transform:rotate(180deg)}
+.method-toggle{width:100%;cursor:pointer;background:none;border:0;padding:0;display:flex;align-items:center;gap:8px;font-weight:800;font-family:var(--display);font-size:1rem}
+.method-toggle .chev{margin-left:auto}
+.method-toggle[aria-expanded="true"] .chev{transform:rotate(180deg)}
 .mgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:18px 28px;margin-top:16px}
-.mgrid h3{font-size:.75rem;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);margin:0 0 4px}
+.mgrid h3{font-size:.7rem;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin:0 0 4px}
 .mgrid p,.mgrid li{font-size:.85rem;color:var(--ink-2);margin:0}
 .mgrid ul{margin:0;padding-left:18px}
-.mgrid code{font-size:.85em;background:var(--rule-2);padding:1px 4px;border-radius:4px}
 .mtools{display:flex;gap:6px;margin-top:8px}
 footer{color:var(--muted);font-size:.75rem;padding:0 0 40px}
-@media (max-width:520px){ .wrap{padding:0 14px} main section{padding:16px} header.top{padding-top:20px} .rows li{padding:7px 4px} }
+@media (max-width:520px){ .wrap{padding:0 14px} main section{padding:16px} .rows li{padding:7px 4px} .mlab{font-size:.66rem} }
 @media (prefers-reduced-motion: reduce){ *{transition:none!important} }
 </style>
 </head>
 <body>
-<div class="wrap">
+<div class="band"><div class="wrap">
 <header class="top">
   <div class="ttl">
     <p class="eyebrow">Cincinnati region · 24 metros</p>
-    <h1>Salary explorer</h1>
+    <h1>Salary <span>explorer</span></h1>
   </div>
   <p class="lede">Annual wages in 2024 dollars · ACS 2020–24 with BLS May 2025 as a market reference</p>
-  <button class="btn primary" id="copylink" aria-label="Copy link to this view"></button>
+  <button class="btn gold" id="copylink" aria-label="Copy link to this view"></button>
 </header>
-<div class="linkbox" id="linkbox"><input id="linkinput" readonly aria-label="Link to this view"></div>
+</div></div>
+<div class="wrap">
+<div class="linkbox" id="linkbox" style="margin-top:16px"><input id="linkinput" readonly aria-label="Link to this view"></div>
 
 <div class="layout">
 <aside class="filters card" id="filters">
@@ -238,40 +314,42 @@ footer{color:var(--muted);font-size:.75rem;padding:0 0 40px}
       <button data-w="ftyr" aria-pressed="true">Full-time</button>
       <button data-w="all" aria-pressed="false">All earners</button>
     </div>
-    <label class="f">Metro<select id="f-metro"></select></label>
-    <label class="f">Role<select id="f-disc"></select></label>
-    <div class="more" id="more">
-      <button class="moretoggle" id="moretoggle" aria-expanded="false" aria-controls="morebody">More filters <span class="count" id="morecount"></span></button>
-      <div id="morebody" hidden>
-      <label class="f">Age<select id="f-age" data-dim="age"></select></label>
-      <label class="f">Gender<select id="f-sex" data-dim="sex"></select></label>
-      <label class="f">Education<select id="f-educ" data-dim="educ"></select></label>
-      <label class="f">Race and ethnicity<select id="f-race" data-dim="race"></select></label>
-      <label class="f">Industry<select id="f-ind" data-dim="ind"></select></label>
-      </div>
+    <div id="pickers-main"></div>
+    <p class="fhint" id="fhint"></p>
+    <div class="more">
+      <button class="moretoggle" id="moretoggle" aria-expanded="false" aria-controls="morebody">More filters <span class="ms-n" id="morecount"></span></button>
+      <div id="morebody" hidden><div id="pickers-more"></div></div>
     </div>
-    <p class="fnote" id="fnote"></p>
     <div class="factions"><button class="linkbtn" id="reset">Reset filters</button></div>
   </div>
 </aside>
 
 <main id="main">
-  <section class="hero card" id="hero" aria-live="polite"></section>
-
-  <section class="card" id="sec-metros">
+  <section class="card" id="sec-region">
     <div class="shead">
-      <div><h2>By metro</h2><p class="sub" id="metros-sub"></p></div>
-      <div class="tools" data-tools="metros"></div>
+      <div><h2>Across the region</h2><p class="sub" id="region-sub"></p></div>
+      <div class="tools">
+        <div class="seg small" role="group" aria-label="Region view"><button data-v="map" aria-pressed="true">Map</button><button data-v="list" aria-pressed="false">List</button></div>
+        <span data-tools="metros" style="display:flex;gap:6px"></span>
+      </div>
     </div>
-    <div class="legend" aria-hidden="true">
-      <span><i style="background:var(--band-o)"></i>10th–90th pct</span>
-      <span><i style="background:var(--band-i)"></i>Middle 50%</span>
-      <span><i class="dot"></i>Median</span>
+    <div id="map-view">
+      <div class="map" id="map"></div>
+      <div class="mapkey" id="mapkey"></div>
     </div>
-    <ul class="rows" id="metro-rows"></ul>
+    <div id="list-view" hidden>
+      <div class="legend" aria-hidden="true">
+        <span><i style="background:var(--band-o)"></i>10th–90th pct</span>
+        <span><i style="background:var(--band-i)"></i>Middle 50%</span>
+        <span><i class="dot"></i>Median</span>
+      </div>
+      <ul class="rows" id="metro-rows"></ul>
+    </div>
     <p class="gone" id="metro-gone"></p>
     <div class="tablewrap" id="tbl-metros"></div>
   </section>
+
+  <section class="hero card on-navy" id="hero" aria-live="polite"></section>
 
   <section class="card" id="sec-split">
     <div class="shead">
@@ -294,19 +372,18 @@ footer{color:var(--muted);font-size:.75rem;padding:0 0 40px}
   </section>
 
   <section class="card">
-    <details class="method" id="method">
-      <summary>About the data</summary>
-      <div id="method-body"></div>
-    </details>
+    <button class="method-toggle" id="methodtoggle" aria-expanded="false" aria-controls="method-body">About the data</button>
+    <div id="method-body" hidden></div>
   </section>
 </main>
 </div>
-<footer>Sources: U.S. Census Bureau ACS 2020–2024 5-year PUMS; U.S. Bureau of Labor Statistics OEWS, May 2025. Estimates are this page’s own calculations, not official figures.</footer>
+<footer>Sources: U.S. Census Bureau ACS 2020–2024 5-year PUMS; U.S. Bureau of Labor Statistics OEWS, May 2025; Census cartographic boundaries (via us-atlas). Estimates are this page’s own calculations, not official figures.</footer>
 </div>
 <div class="tip" id="tip" role="tooltip"></div>
 <div class="toast" id="toast" role="status"></div>
 
 <script id="data" type="application/json">__DATA__</script>
+<script id="geo" type="application/json">__GEO__</script>
 <script>
 "use strict";
 const D = JSON.parse(document.getElementById('data').textContent);
@@ -354,17 +431,24 @@ function estimateRows(idx){
   const rel = q[2] ? moe[2] / q[2] * 100 : 999;
   return {n, pop: tot[0], q, moe, rel, caution: n < META.rules.caution_n || rel > META.rules.caution_rel, suppressed: false};
 }
+/* Selection -> record indexes. Every field may be a single value or a list (multi-select):
+   metro: id | 'REGION' | 'SMALL' | [ids]; disc: 'tech' | 'fam:id' | [...]; dims: -1 | value | [values] ([] = all). */
+const asList = v => Array.isArray(v) ? v : v == null || v === -1 ? [] : [v];
 function microSelect(sel, ignoreDim){
   const out = [];
-  const mi = sel.metro === 'REGION' ? -1 : sel.metro === 'SMALL' ? -2 : METRO_IDX[sel.metro];
-  const fi = sel.disc.startsWith('fam:') && ignoreDim !== 'fam' ? FAM.findIndex(f => f.id === sel.disc.slice(4)) : -1;
-  const dims = DIMS.filter(d => sel[d] >= 0 && d !== ignoreDim);
+  const ms = asList(sel.metro), all = !ms.length || ms.includes('REGION'), small = ms.includes('SMALL');
+  const mOK = new Uint8Array(META.metros.length);
+  if (!all && !small) for (const id of ms) mOK[METRO_IDX[id]] = 1;
+  const ds = asList(sel.disc), anyFam = ignoreDim === 'fam' || !ds.length || ds.includes('tech');
+  const fOK = new Uint8Array(FAM.length);
+  if (!anyFam) for (const d of ds) if (d.startsWith('fam:')) fOK[FAM.findIndex(f => f.id === d.slice(4))] = 1;
+  const dims = DIMS.filter(d => d !== ignoreDim && asList(sel[d]).length).map(d => { const ok = new Uint8Array(META.dims[d].length); for (const v of asList(sel[d])) ok[v] = 1; return [COL[d], ok]; });
   for (let r = 0; r < NREC; r++){
     if (sel.w === 'ftyr' && !COL.ftyr[r]) continue;
     const m = COL.metro[r];
-    if (mi >= 0 ? m !== mi : mi === -2 ? BIG4.has(m) : false) continue;
-    if (fi >= 0 && COL.fam[r] !== fi) continue;
-    let ok = true; for (const d of dims) if (COL[d][r] !== sel[d]) { ok = false; break; }
+    if (all ? false : small ? BIG4.has(m) : !mOK[m]) continue;
+    if (!anyFam && !fOK[COL.fam[r]]) continue;
+    let ok = true; for (const [c, okv] of dims) if (!okv[c[r]]) { ok = false; break; }
     if (ok) out.push(r);
   }
   return out;
@@ -378,46 +462,59 @@ function cubeGet(w, metro, disc, dim, val){
   return {n: a[0], pop: a[1], q: a.slice(2, 7).map(x => x * 100), moe: a.slice(7, 12).map(x => x * 100),
           rel: a[4] ? a[9] / a[4] * 100 : 999, caution: !!a[12], suppressed: false};
 }
-const isTech = s => s.disc === 'tech' || s.disc.startsWith('fam:');
-const cubeDisc = s => s.disc === 'ALL' ? 'ALL' : s.disc.slice(4);
-const activeDims = s => DIMS.filter(d => s[d] >= 0);
+const isTech = s => asList(s.disc).some(d => d === 'tech' || d.startsWith('fam:'));
+const activeDims = s => DIMS.filter(d => asList(s[d]).length);
 
-/* Estimate for a selection; override lets charts vary one field. */
+/* Estimate for a selection; ignoreDim lets charts vary one field. Non-tech selections are single-valued (see normalize). */
 function estimate(sel, ignoreDim){
   if (isTech(sel)) return estimateRows(microSelect(sel, ignoreDim));
-  const ds = activeDims(sel).filter(d => d !== ignoreDim);
-  if (ds.length > 1) return {n: 0, suppressed: true, unsupported: true};
-  return ds.length ? cubeGet(sel.w, sel.metro, cubeDisc(sel), ds[0], sel[ds[0]]) : cubeGet(sel.w, sel.metro, cubeDisc(sel), '-', '-');
+  const ds = activeDims(sel).filter(d => d !== ignoreDim), m = asList(sel.metro)[0] || 'REGION', d0 = asList(sel.disc)[0];
+  const disc = d0 === 'ALL' ? 'ALL' : d0.slice(4);
+  if (ds.length > 1 || ds.some(d => asList(sel[d]).length > 1) || asList(sel.metro).length > 1) return {n: 0, suppressed: true, unsupported: true};
+  return ds.length ? cubeGet(sel.w, m, disc, ds[0], asList(sel[ds[0]])[0]) : cubeGet(sel.w, m, disc, '-', '-');
 }
 
 /* ---------- state + URL ---------- */
-const DEFAULT = {w:'ftyr', metro:'17140', disc:'tech', age:-1, sex:-1, educ:-1, race:-1, ind:-1, split:'fam'};
-let S = {...DEFAULT};
+const DEFAULT = () => ({w:'ftyr', metro:['17140'], disc:['tech'], age:[], sex:[], educ:[], race:[], ind:[], split:'fam', view:'map'});
+let S = DEFAULT();
+const GEO = JSON.parse(document.getElementById('geo').textContent);
+const validDisc = d => d === 'ALL' || d === 'tech' || (d.startsWith('fam:') && FAM.some(f => 'fam:' + f.id === d)) || (d.startsWith('soc:') && META.soc.some(g => 'soc:' + g.id === d));
+const excl = d => !d.startsWith('fam:');
 function readHash(){
-  const p = new URLSearchParams(location.hash.slice(1)), s = {...DEFAULT};
+  const p = new URLSearchParams(location.hash.slice(1)), s = DEFAULT();
+  const list = k => (p.get(k) || '').split(',').filter(Boolean);
   if (p.get('w') === 'all') s.w = 'all';
-  const m = p.get('m'); if (m && (METRO[m] || m === 'REGION' || m === 'SMALL')) s.metro = m;
-  const d = p.get('d'); if (d && validDisc(d)) s.disc = d;
-  for (const k of DIMS){ const v = +p.get(k); if (p.has(k) && Number.isInteger(v) && v >= 0 && v < META.dims[k].length) s[k] = v; }
+  if (p.get('v') === 'list') s.view = 'list';
+  const m = list('m').filter(x => METRO[x] || x === 'REGION' || x === 'SMALL'); if (m.length) s.metro = m;
+  const d = list('d').filter(validDisc); if (d.length) s.disc = d;
+  for (const k of DIMS) s[k] = [...new Set(list(k).map(Number).filter(v => Number.isInteger(v) && v >= 0 && v < META.dims[k].length))];
   const sp = p.get('split'); if (sp && (DIMS.includes(sp) || sp === 'fam')) s.split = sp;
   return normalize(s);
 }
-function validDisc(d){ return d === 'ALL' || d === 'tech' || (d.startsWith('fam:') && FAM.some(f => 'fam:' + f.id === d)) || (d.startsWith('soc:') && META.soc.some(g => 'soc:' + g.id === d)); }
 function writeHash(){
   const p = new URLSearchParams();
   if (S.w !== 'ftyr') p.set('w', S.w);
-  p.set('m', S.metro); p.set('d', S.disc);
-  for (const k of DIMS) if (S[k] >= 0) p.set(k, S[k]);
+  p.set('m', S.metro.join(',')); p.set('d', S.disc.join(','));
+  for (const k of DIMS) if (S[k].length) p.set(k, S[k].join(','));
   p.set('split', S.split);
-  const h = '#' + p.toString();
+  if (S.view !== 'map') p.set('v', S.view);
+  const h = '#' + p.toString().replace(/%2C/g, ',').replace(/%3A/g, ':');
   if (location.hash !== h) history.replaceState(null, '', h);
 }
 let NOTE = '';
 function normalize(s){
   NOTE = '';
+  if (!s.metro.length) s.metro = ['REGION'];
+  const sp = s.metro.find(x => x === 'REGION' || x === 'SMALL'); if (sp && s.metro.length > 1) s.metro = [sp];
+  if (!s.disc.length) s.disc = ['tech'];
+  const ex = s.disc.find(excl); if (ex && s.disc.length > 1) s.disc = [ex];
   if (!isTech(s)){
+    const trimmed = [];
+    if (s.metro.length > 1){ s.metro = [s.metro[0]]; trimmed.push('metro'); }
     const ds = activeDims(s);
-    if (ds.length > 1){ for (const d of ds.slice(1)) s[d] = -1; NOTE = 'Kept only the first demographic filter: outside tech roles, one can be applied at a time.'; }
+    if (ds.length > 1){ for (const d of ds.slice(1)) s[d] = []; trimmed.push('demographic filter'); }
+    for (const d of activeDims(s)) if (s[d].length > 1){ s[d] = [s[d][0]]; trimmed.push(DIMLABEL[d].toLowerCase()); }
+    if (trimmed.length) NOTE = `Kept one ${trimmed.join(', ')} — outside tech roles the figures are precomputed, so pick one at a time.`;
     if (s.split === 'fam') s.split = 'educ';
     const a = activeDims(s);
     if (a.length && s.split !== a[0]) s.split = a[0];
@@ -428,18 +525,21 @@ function normalize(s){
 /* ---------- formatting ---------- */
 const money = v => '$' + (Math.round(v / 100) * 100).toLocaleString('en-US');
 const k$ = v => '$' + (v / 1000).toFixed(1) + 'k';
+const kk = v => '$' + Math.round(v / 1000) + 'k';
 const sig2 = v => { if (v < 100) return Math.round(v).toLocaleString('en-US'); const p = Math.pow(10, Math.floor(Math.log10(v)) - 1); return (Math.round(v / p) * p).toLocaleString('en-US'); };
 const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-function metroName(id){ return id === 'REGION' ? 'All 24 metros' : id === 'SMALL' ? '20 smaller metros combined' : METRO[id].name; }
-function discName(d){
+const CITY = Object.fromEntries(GEO.metros.map(m => [m.id, m.city]));
+const one = id => id === 'REGION' ? 'All 24 metros' : id === 'SMALL' ? '20 smaller metros' : METRO[id].name;
+function metroName(ms){ ms = asList(ms); return ms.length === 1 ? one(ms[0]) : ms.length === 2 ? ms.map(id => CITY[id]).join(' + ') : `${ms.length} metros`; }
+function discOne(d){
   if (d === 'ALL') return 'All occupations';
   if (d === 'tech') return 'All tech roles';
   if (d.startsWith('fam:')) return FAM.find(f => 'fam:' + f.id === d).label;
   return META.soc.find(g => 'soc:' + g.id === d).label;
 }
-function discPhrase(d){ return d === 'ALL' ? 'all occupations' : d === 'tech' ? 'all tech roles' : discName(d).toLowerCase(); }
+function discName(ds){ ds = asList(ds); return ds.length === 1 ? discOne(ds[0]) : ds.length === 2 ? ds.map(discOne).join(' + ') : `${ds.length} tech families`; }
+function dimText(d, vs){ return vs.length <= 2 ? vs.map(v => META.dims[d][v]).join(' + ') : `${DIMLABEL[d]}: ${vs.length} groups`; }
 function valLabel(dim, v){ return dim === 'fam' ? FAM[v].label : META.dims[dim][v]; }
-
 const $ = id => document.getElementById(id);
 
 /* ---------- icons ---------- */
@@ -449,7 +549,9 @@ const ICON = {
   link: '<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></svg>',
   chev: '<svg class="i chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>',
   warn: '<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 9v4m0 3.5v.01M10.3 3.9 2.4 18a2 2 0 0 0 1.7 3h15.8a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>',
-  sliders: '<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/></svg>',
+  sliders: '<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/></svg>',
+  map: '<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2zM9 4v14M15 6v14"/></svg>',
+  list: '<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01"/></svg>',
 };
 function toolsHTML(k, csvOnly){
   return (csvOnly ? '' : `<button class="btn icon" data-view="${k}" aria-pressed="false" aria-label="View data" title="View data">${ICON.table}</button>`) +
@@ -460,46 +562,87 @@ $('copylink').innerHTML = ICON.link + '<span>Share view</span>';
 $('ftoggle').insertAdjacentHTML('afterbegin', ICON.sliders);
 $('ftoggle').insertAdjacentHTML('beforeend', ICON.chev);
 $('moretoggle').insertAdjacentHTML('beforeend', ICON.chev);
-function setMore(on){ $('morebody').hidden = !on; $('moretoggle').setAttribute('aria-expanded', String(on)); }
-$('moretoggle').addEventListener('click', () => setMore($('morebody').hidden));
-document.querySelector('#method summary').insertAdjacentHTML('beforeend', ICON.chev);
+$('methodtoggle').insertAdjacentHTML('beforeend', ICON.chev);
+document.querySelector('[data-v="map"]').insertAdjacentHTML('afterbegin', ICON.map);
+document.querySelector('[data-v="list"]').insertAdjacentHTML('afterbegin', ICON.list);
+function disclose(btn, body, on){ $(body).hidden = !on; $(btn).setAttribute('aria-expanded', String(on)); }
+$('moretoggle').addEventListener('click', () => disclose('moretoggle', 'morebody', $('morebody').hidden));
+$('methodtoggle').addEventListener('click', () => disclose('methodtoggle', 'method-body', $('method-body').hidden));
+
+/* ---------- multi-select pickers ---------- */
+/* Each picker: a button showing the current choice, opening an inline checklist. Options with excl=true stand alone
+   (selecting one clears the rest); the others combine. Outside tech roles every picker except Role is single-choice. */
+const PICKERS = {};
+function pickerDefs(){
+  const metroOpts = [{group: 'Combined'}, {v: 'REGION', t: 'All 24 metros', excl: true}, {v: 'SMALL', t: '20 smaller metros combined', excl: true},
+    {group: 'By distance from Cincinnati'}, ...META.metros.map(m => ({v: m.id, t: m.name + (m.fit_flag ? ' †' : ''), note: Math.round(m.miles) + ' mi'}))];
+  const discOpts = [{v: 'ALL', t: 'All occupations', excl: true}, {group: 'Tech roles'}, {v: 'tech', t: 'All tech roles', excl: true},
+    ...FAM.map(f => ({v: 'fam:' + f.id, t: f.label})), {group: 'Occupation groups'}, ...META.soc.map(g => ({v: 'soc:' + g.id, t: g.label, excl: true}))];
+  return [['metro', 'Metro', metroOpts, 'main'], ['disc', 'Role', discOpts, 'main'],
+    ...DIMS.map(d => [d, DIMLABEL[d], META.dims[d].map((t, i) => ({v: i, t})), 'more'])];
+}
+function buildPickers(){
+  for (const [key, label, opts, where] of pickerDefs()){
+    const id = 'ms-' + key, el = document.createElement('div'); el.className = 'ms'; el.id = id;
+    let body = key in {metro: 1, disc: 1} ? '' : `<label class="ms-opt"><input type="checkbox" data-all="1"><span class="ms-box"></span><span>All</span></label>`;
+    for (const o of opts) body += o.group ? `<div class="ms-group">${esc(o.group)}</div>`
+      : `<label class="ms-opt"><input type="checkbox" value="${esc(o.v)}"${o.excl ? ' data-excl="1"' : ''}><span class="ms-box"></span><span>${esc(o.t)}</span>${o.note ? `<small>${o.note}</small>` : ''}</label>`;
+    el.innerHTML = `<span class="flabel" id="${id}-l">${label}</span><button class="ms-btn" aria-expanded="false" aria-controls="${id}-p" aria-describedby="${id}-l"><span class="ms-val"></span><span class="ms-n"></span>${ICON.chev}</button>` +
+      `<div class="ms-panel" id="${id}-p" role="group" aria-label="${esc(label)}" hidden>${body}</div>`;
+    $('pickers-' + where).appendChild(el);
+    const btn = el.querySelector('.ms-btn'), panel = el.querySelector('.ms-panel');
+    btn.addEventListener('click', () => { const open = panel.hidden; closePickers(); panel.hidden = !open; btn.setAttribute('aria-expanded', String(open)); });
+    panel.addEventListener('change', e => pick(key, e.target));
+    PICKERS[key] = {el, btn, panel, opts};
+  }
+}
+function closePickers(except){ for (const k in PICKERS) if (k !== except){ PICKERS[k].panel.hidden = true; PICKERS[k].btn.setAttribute('aria-expanded', 'false'); } }
+document.addEventListener('click', e => { if (!e.target.closest('.ms')) closePickers(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closePickers(); });
+function singleMode(key){ return !isTech(S) && key !== 'disc'; }
+function pick(key, input){
+  const isDim = DIMS.includes(key), val = isDim ? +input.value : input.value;
+  let cur = S[key].slice();
+  if (input.dataset.all) cur = [];
+  else if (!input.checked) cur = cur.filter(x => x !== val);
+  else if (input.dataset.excl || singleMode(key)) cur = [val];
+  else { const ex = new Set(PICKERS[key].opts.filter(o => o.excl).map(o => o.v)); cur = cur.filter(x => !ex.has(x)).concat(val); }
+  S[key] = cur;
+  if (key === 'disc' && isTech(S) && S.split !== 'fam' && !activeDims(S).length) S.split = 'fam';
+  if (isDim && !isTech(S) && cur.length){ for (const o of DIMS) if (o !== key) S[o] = []; S.split = key; }
+  if (singleMode(key) || input.dataset.excl) closePickers();
+  onChange();
+}
+function syncPickers(){
+  for (const key in PICKERS){
+    const {btn, panel} = PICKERS[key], cur = S[key], single = singleMode(key), dim = DIMS.includes(key);
+    panel.classList.toggle('single', single);
+    panel.querySelectorAll('input').forEach(i => { i.checked = i.dataset.all ? !cur.length : cur.includes(dim ? +i.value : i.value); });
+    const off = dim && !isTech(S) && activeDims(S).length && !activeDims(S).includes(key);
+    btn.disabled = !!off; btn.style.opacity = off ? .5 : '';
+    btn.querySelector('.ms-val').textContent = key === 'metro' ? metroName(cur) : key === 'disc' ? discName(cur) : cur.length ? dimText(key, cur) : 'All';
+    btn.querySelector('.ms-n').textContent = cur.length > 1 ? cur.length : '';
+  }
+}
 
 /* ---------- filters UI ---------- */
-function opt(v, t, sel){ return `<option value="${esc(v)}"${sel ? ' selected' : ''}>${esc(t)}</option>`; }
 function buildFilters(){
-  let h = `<optgroup label="Combined">${opt('REGION', 'All 24 metros', S.metro === 'REGION')}${opt('SMALL', '20 smaller metros combined', S.metro === 'SMALL')}</optgroup><optgroup label="By distance from Cincinnati">`;
-  for (const m of META.metros) h += opt(m.id, `${m.name} · ${Math.round(m.miles)} mi${m.fit_flag ? ' †' : ''}`, S.metro === m.id);
-  $('f-metro').innerHTML = h + '</optgroup>';
-  let d = opt('ALL', 'All occupations', S.disc === 'ALL') + `<optgroup label="Tech roles">${opt('tech', 'All tech roles', S.disc === 'tech')}`;
-  for (const f of FAM) d += opt('fam:' + f.id, f.label, S.disc === 'fam:' + f.id);
-  d += '</optgroup><optgroup label="Occupation groups">';
-  for (const g of META.soc) d += opt('soc:' + g.id, g.label, S.disc === 'soc:' + g.id);
-  $('f-disc').innerHTML = d + '</optgroup>';
+  syncPickers();
   const tech = isTech(S), act = activeDims(S);
-  for (const dim of DIMS){
-    const el = $('f-' + dim);
-    el.innerHTML = opt(-1, 'All', S[dim] < 0) + META.dims[dim].map((l, i) => opt(i, l, S[dim] === i)).join('');
-    el.disabled = !tech && act.length > 0 && !act.includes(dim);
-  }
   $('morecount').textContent = act.length || '';
-  document.querySelectorAll('.seg button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.w === S.w)));
-  $('fnote').textContent = NOTE || (!tech && act.length ? 'Outside tech roles, one demographic filter at a time.' : '');
+  document.querySelectorAll('.seg [data-w]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.w === S.w)));
+  document.querySelectorAll('.seg [data-v]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.v === S.view)));
+  $('fhint').textContent = NOTE || (tech ? 'Tip: pick several metros, roles or groups to pool them.' : 'Multi-select works for tech roles; other occupations take one choice per filter.');
   const opts = (tech ? ['fam'] : []).concat(DIMS);
   $('pills').innerHTML = opts.map(o => `<button data-split="${o}" aria-pressed="${S.split === o}"${!tech && act.length && o !== act[0] ? ' disabled' : ''}>${DIMLABEL[o]}</button>`).join('');
-  const parts = [S.w === 'ftyr' ? 'Full-time' : 'All earners', discName(S.disc), metroName(S.metro)].concat(act.map(x => META.dims[x][S[x]]));
+  const parts = [S.w === 'ftyr' ? 'Full-time' : 'All earners', discName(S.disc), metroName(S.metro)].concat(act.map(x => dimText(x, S[x])));
   $('fsum').textContent = parts.join(' · ');
 }
 function onChange(){ S = normalize(S); writeHash(); render(); }
-$('f-metro').addEventListener('change', e => { S.metro = e.target.value; onChange(); });
-$('f-disc').addEventListener('change', e => { S.disc = e.target.value; if (isTech(S) && S.split !== 'fam' && !activeDims(S).length) S.split = 'fam'; onChange(); });
-for (const dim of DIMS) $('f-' + dim).addEventListener('change', e => {
-  S[dim] = +e.target.value;
-  if (!isTech(S) && S[dim] >= 0){ for (const o of DIMS) if (o !== dim) S[o] = -1; S.split = dim; }
-  onChange();
-});
 $('pills').addEventListener('click', e => { const b = e.target.closest('[data-split]'); if (b && !b.disabled){ S.split = b.dataset.split; onChange(); } });
-document.querySelectorAll('.seg button').forEach(b => b.addEventListener('click', () => { S.w = b.dataset.w; onChange(); }));
-$('reset').addEventListener('click', () => { S = {...DEFAULT}; onChange(); });
+document.querySelectorAll('.seg [data-w]').forEach(b => b.addEventListener('click', () => { S.w = b.dataset.w; onChange(); }));
+document.querySelectorAll('.seg [data-v]').forEach(b => b.addEventListener('click', () => { S.view = b.dataset.v; onChange(); }));
+$('reset').addEventListener('click', () => { S = DEFAULT(); closePickers(); onChange(); });
 $('ftoggle').addEventListener('click', () => { const f = $('filters'); f.classList.toggle('open'); $('ftoggle').setAttribute('aria-expanded', f.classList.contains('open')); });
 window.addEventListener('hashchange', () => { S = readHash(); render(); });
 
@@ -512,13 +655,15 @@ $('copylink').addEventListener('click', async () => {
 
 /* ---------- OEWS reference ---------- */
 function refOccs(sel){
-  if (sel.disc === 'ALL') return ['000000'];
-  if (sel.disc === 'tech') return FAM.flatMap(f => f.oews);
-  if (sel.disc.startsWith('fam:')) return FAM.find(f => 'fam:' + f.id === sel.disc).oews;
-  return [sel.disc.slice(4) + '0000'];
+  const ds = asList(sel.disc);
+  if (ds[0] === 'ALL') return ['000000'];
+  if (ds[0] === 'tech') return FAM.flatMap(f => f.oews);
+  if (ds[0].startsWith('soc:')) return [ds[0].slice(4) + '0000'];
+  return FAM.filter(f => ds.includes('fam:' + f.id)).flatMap(f => f.oews);
 }
 function refRows(sel){
-  const o = OEWS[sel.metro]; if (!o) return null;
+  const ms = asList(sel.metro); if (ms.length !== 1) return null;
+  const o = OEWS[ms[0]]; if (!o) return null;
   return refOccs(sel).map(c => ({occ: c, name: META.occnames[c] || c, v: o[c]}));
 }
 
@@ -536,16 +681,14 @@ function marks(q, mx){
     (p25 != null && p75 != null ? `<div class="s i" style="${span(p25, p75, mx)}"></div>` : '') +
     `<div class="s m" style="left:${pc(p50, mx)}"></div>`;
 }
-const kk = v => '$' + Math.round(v / 1000) + 'k';
 const THIN = `<span class="flag" title="Under ${META.rules.caution_n} responses or a wide margin of error">${ICON.warn}Low sample</span>`;
-/* tooltip content, keyed per render */
 let TIPS = {}, TIPN = 0;
-function tipData(label, rows){ const k = 't' + (TIPN++); TIPS[k] = `<b>${esc(label)}</b><dl>${rows.map(([a, b]) => `<dt>${a}</dt><dd>${b}</dd>`).join('')}</dl>`; return k; }
-function estTip(label, e){
+function tipData(label, rows, hint){ const k = 't' + (TIPN++); TIPS[k] = `<b>${esc(label)}</b><dl>${rows.map(([a, b]) => `<dt>${a}</dt><dd>${b}</dd>`).join('')}</dl>${hint ? `<div class="hint">${hint}</div>` : ''}`; return k; }
+function estTip(label, e, hint){
+  if (e.suppressed) return tipData(label, [['Responses', e.unknownN || e.unsupported ? 'too few' : e.n]], 'Too few responses to estimate');
   return tipData(label, [['Median', `${money(e.q[2])} ± ${money(e.moe[2]).slice(1)}`], ['Middle 50%', `${k$(e.q[1])} – ${k$(e.q[3])}`],
-    ['10th–90th', `${k$(e.q[0])} – ${k$(e.q[4])}`], ['Responses', e.n.toLocaleString('en-US')], ['Workers', '~' + sig2(e.pop)]]);
+    ['10th–90th', `${k$(e.q[0])} – ${k$(e.q[4])}`], ['Responses', e.n.toLocaleString('en-US')], ['Workers', '~' + sig2(e.pop)]], hint);
 }
-/* Rows with an estimate; suppressed ones are returned separately so they collapse into one line. */
 function rowsHTML(list, mx){
   let h = '';
   const gone = [];
@@ -587,6 +730,52 @@ function csv(cols, rows){
   return [cols, ...rows].map(r => r.map(q).join(',')).join('\n') + '\n';
 }
 
+/* ---------- map ---------- */
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+function hex2rgb(h){ const n = parseInt(h.slice(1), 16); return [n >> 16, n >> 8 & 255, n & 255]; }
+function rampAt(t){
+  const st = [0, 1, 2, 3, 4].map(i => hex2rgb(css('--ramp-' + i))), x = Math.max(0, Math.min(1, t)) * 4, i = Math.min(3, Math.floor(x)), f = x - i;
+  return 'rgb(' + st[i].map((c, j) => Math.round(c + (st[i + 1][j] - c) * f)).join(',') + ')';
+}
+function renderMap(mrows){
+  const [vx, vy, vw, vh] = GEO.view, X = x => ((x - vx) / vw * 100).toFixed(2) + '%', Y = y => ((y - vy) / vh * 100).toFixed(2) + '%';
+  const ok = mrows.filter(([, e]) => !e.suppressed);
+  const lo = ok.length ? Math.min(...ok.map(([, e]) => e.q[2])) : 0, hi = ok.length ? Math.max(...ok.map(([, e]) => e.q[2])) : 1;
+  const maxPop = ok.length ? Math.max(...ok.map(([, e]) => e.pop)) : 1, wide = $('map').clientWidth > 560;
+  const sel = new Set(S.metro);
+  let svg = `<svg viewBox="${GEO.view.join(' ')}" role="img" aria-label="Map of the 24 metros within 180 miles of Cincinnati">` +
+    GEO.states.map(s => `<path class="st${s.core ? ' core' : ''}" d="${s.d}"/>`).join('') +
+    `<circle class="ring" cx="${GEO.cincy[0]}" cy="${GEO.cincy[1]}" r="${GEO.r180}"/>` +
+    GEO.labels.map(l => `<text class="slabel${l.core ? '' : ' far'}" x="${l.x}" y="${l.y}" text-anchor="middle">${l.t}</text>`).join('') + '</svg>';
+  // label the selected metros plus the largest few (selective direct labels)
+  const W = $('map').clientWidth || 600, H = W * vh / vw, placed = [];
+  const cand = ok.slice().sort((a, b) => (sel.has(b[0].id) - sel.has(a[0].id)) || b[1].pop - a[1].pop).slice(0, wide ? 8 : 6);
+  const showLab = new Set();
+  for (const [m, e] of cand){   // skip a label whose box would overlap one already placed
+    const g = GEO.metros.find(x => x.id === m.id), cx = (g.x - vx) / vw * W, cy = (g.y - vy) / vh * H;
+    const w = Math.max(g.city.split(',')[0].length * (wide ? 7.2 : 6.4), 34), d = (wide ? 12 : 9) + (wide ? 30 : 20) * Math.sqrt(e.pop / maxPop);
+    const box = [cx - w / 2, cy + d / 2 + 2, cx + w / 2, cy + d / 2 + 30];
+    if (placed.some(b => !(box[2] < b[0] || box[0] > b[2] || box[3] < b[1] || box[1] > b[3]))) continue;
+    placed.push(box); showLab.add(m.id);
+  }
+  let pins = '', labs = '';
+  const order = mrows.slice().sort((a, b) => (b[1].pop || 0) - (a[1].pop || 0));
+  for (const [m, e] of order){
+    const g = GEO.metros.find(x => x.id === m.id), s = sel.has(m.id);
+    const d = e.suppressed ? 10 : Math.round((wide ? 12 : 9) + (wide ? 30 : 20) * Math.sqrt(e.pop / maxPop));
+    const fill = e.suppressed ? '' : `background:${rampAt(hi > lo ? (e.q[2] - lo) / (hi - lo) : .5)};`;
+    const aria = e.suppressed ? `${m.name}: too few responses` : `${m.name}: median ${money(e.q[2])}`;
+    pins += `<button class="mk${e.suppressed ? ' thin' : ''}${s ? ' sel' : ''}" style="left:${X(g.x)};top:${Y(g.y)};width:${d}px;height:${d}px;${fill}" data-pick="${m.id}" data-tip="${estTip(m.name + (m.fit_flag ? ' †' : ''), e, 'Click to see this metro')}" aria-label="${esc(aria)}" aria-pressed="${s}"></button>`;
+    if (showLab.has(m.id)) labs += `<div class="mlab" style="left:${X(g.x)};top:calc(${Y(g.y)} + ${d / 2 + 3}px)">${esc(g.city.split(',')[0])}<small>${kk(e.q[2])}</small></div>`;
+  }
+  $('map').innerHTML = svg + pins + labs;
+  const thin = mrows.some(([, e]) => e.suppressed);
+  $('mapkey').innerHTML = ok.length ? `<span class="ramp">${kk(lo)}<i style="background:linear-gradient(90deg,${[0, .25, .5, .75, 1].map(rampAt).join(',')})"></i>${kk(hi)} median</span>` +
+    `<span class="ex"><i style="background:var(--ramp-2)"></i>Size = workers</span><span class="ex"><i style="background:var(--card);outline:3px solid var(--gold)"></i>Selected</span>` +
+    (thin ? `<span class="ex"><i style="border:2px solid var(--muted)"></i>Too few responses</span>` : '') : '';
+}
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => render());
+
 /* ---------- tooltip (mouse hover and keyboard focus; touch uses the table view) ---------- */
 const TIP = $('tip');
 function showTip(el){
@@ -619,24 +808,34 @@ async function saveFile(name, text){
 
 /* ---------- render ---------- */
 let LAST = {};
-function context(){
-  const act = activeDims(S).map(d => ({dim: d, label: META.dims[d][S[d]]}));
-  return {act, who: S.w === 'ftyr' ? 'Full-time' : 'All earners'};
-}
 function render(){
   buildFilters(); hideTip(); TIPS = {}; TIPN = 0;
-  const {act, who} = context();
-  const csvMeta = [`# Selection: ${S.w === 'ftyr' ? 'full-time year-round' : 'all wage earners'}; ${discName(S.disc)}; ${metroName(S.metro)}${act.map(a => '; ' + DIMLABEL[a.dim] + ': ' + a.label).join('')}`,
-                   '# Source: ACS 2020-2024 5-year PUMS, 2024 dollars; MOE = 90% via 80 SDR replicate weights. Link: ' + location.href];
-  const fit = METRO[S.metro] && METRO[S.metro].fit_flag;
+  const act = activeDims(S), who = S.w === 'ftyr' ? 'Full-time' : 'All earners';
+  const selText = `${S.w === 'ftyr' ? 'full-time year-round' : 'all wage earners'}; ${discName(S.disc)}; ${S.metro.map(one).join(' + ')}${act.map(d => '; ' + DIMLABEL[d] + ': ' + S[d].map(v => META.dims[d][v]).join(' + ')).join('')}`;
+  const csvMeta = ['# Selection: ' + selText, '# Source: ACS 2020-2024 5-year PUMS, 2024 dollars; MOE = 90% via 80 SDR replicate weights. Link: ' + location.href];
+  const fit = S.metro.length === 1 && METRO[S.metro[0]] && METRO[S.metro[0]].fit_flag;
 
-  /* hero */
-  const e = estimate(S), refs = S.disc === 'tech' ? null : refRows(S), lead = refs && refs.find(r => r.v && r.v[3] != null);
-  const kicker = `<p class="kicker">${esc(discName(S.disc))} · ${esc(metroName(S.metro))}${fit ? ' †' : ''}</p>`;
-  const chips = `<div class="chips"><span class="chip">${who}</span>${act.map(a => `<span class="chip">${esc(a.label)}</span>`).join('')}</div>`;
+  /* region: map or list */
+  const mrows = META.metros.map(m => [m, estimate({...S, metro: [m.id]})]);
+  mrows.sort((a, b) => (a[1].suppressed - b[1].suppressed) || (b[1].suppressed ? a[0].miles - b[0].miles : b[1].q[2] - a[1].q[2]));
+  $('region-sub').textContent = `${discName(S.disc)} · ${who}${act.length ? ' · ' + act.map(d => dimText(d, S[d])).join(', ') : ''} · tap a metro to drill in`;
+  $('map-view').hidden = S.view !== 'map'; $('list-view').hidden = S.view !== 'list';
+  const mr = rowsHTML(mrows.map(([m, est]) => [m.name, est, {sel: S.metro.includes(m.id), click: m.id, mark: m.fit_flag ? ' †' : ''}]), scaleMax(mrows.map(r => r[1])));
+  if (S.view === 'map') renderMap(mrows); else $('metro-rows').innerHTML = mr.h;
+  $('metro-gone').textContent = S.view === 'list' ? goneText(mr.gone, mrows.length) : (mr.gone.length === mrows.length ? goneText(mr.gone, mrows.length) : '');
+  LAST.metros = {cols: ['Metro', 'Miles from Cincinnati', ...TABLE_COLS.slice(1)], rows: tableRows(mrows.map(([m, est]) => [m.name, est])).map((r, i) => [r[0], Math.round(mrows[i][0].miles), ...r.slice(1)]), meta: csvMeta, file: 'by-metro'};
+
+  /* detail */
+  const e = estimate(S), refs = S.disc.length === 1 && S.disc[0] !== 'tech' ? refRows(S) : null, lead = refs && refs.find(r => r.v && r.v[3] != null);
+  const kicker = `<p class="kicker"><b>${S.metro.length > 1 ? 'Pooled selection' : 'Selected'}</b>${esc(discName(S.disc))} · ${esc(metroName(S.metro))}${fit ? ' †' : ''}</p>`;
+  const chipX = (k, v, t) => `<span class="chip">${esc(t)}<button data-unpick="${k}" data-val="${esc(v)}" aria-label="Remove ${esc(t)}">×</button></span>`;
+  const chips = `<div class="chips"><span class="chip fixed">${who}</span>` +
+    (S.metro.length > 1 ? S.metro.map(id => chipX('metro', id, CITY[id])).join('') : '') +
+    (S.disc.length > 1 ? S.disc.map(d => chipX('disc', d, discOne(d))).join('') : '') +
+    act.map(d => S[d].map(v => chipX(d, v, META.dims[d][v])).join('')).join('') + '</div>';
   let h = '';
   if (e.suppressed){
-    h = `${kicker}${chips}<div class="empty">${e.unsupported ? 'This combination isn’t available outside tech roles.' : `Not enough survey responses for this group${e.unknownN ? '' : ` (n=${e.n})`}.`} Try removing a filter, choosing “All earners”, or a combined metro.</div>`;
+    h = `${kicker}${chips}<div class="empty">${e.unsupported ? 'This combination isn’t available outside tech roles.' : `Not enough survey responses for this group${e.unknownN ? '' : ` (n=${e.n})`}.`} Try removing a filter, choosing “All earners”, or adding metros.</div>`;
   } else {
     const mx = scaleMax([e, lead ? {q: [0, 0, lead.v[3], 0, 0]} : null]);
     h = `<div class="hero-top"><div>${kicker}<div class="big">${money(e.q[2])}</div>
@@ -652,43 +851,34 @@ function render(){
         <div class="tile"><div class="l">Sample</div><div class="v">${e.n.toLocaleString('en-US')}<small>responses · ~${sig2(e.pop)} workers</small></div></div>
         ${lead ? `<div class="tile" title="${esc(lead.name)}"><div class="l"><i style="display:inline-block;width:8px;height:8px;border-radius:2px;background:var(--ref);transform:rotate(45deg)"></i>BLS median</div><div class="v">${kk(lead.v[3])}<small>employer-reported</small></div></div>` : ''}
       </div>
-      ${fit ? `<p class="note">† Survey areas only approximate this metro’s boundary (${Math.round(METRO[S.metro].coverage * 100)}% of residents covered).</p>` : ''}
+      ${fit ? `<p class="note">† Survey areas only approximate this metro’s boundary (${Math.round(METRO[S.metro[0]].coverage * 100)}% of residents covered).</p>` : ''}
       <div class="tablewrap" id="tbl-hero"></div>`;
   }
   $('hero').innerHTML = h;
   LAST.hero = {cols: TABLE_COLS, rows: tableRows([[`${discName(S.disc)}, ${metroName(S.metro)}`, e]]), meta: csvMeta, file: 'selection'};
-
-  /* metros */
-  const mrows = META.metros.map(m => [m, estimate({...S, metro: m.id})]);
-  mrows.sort((a, b) => (a[1].suppressed - b[1].suppressed) || (b[1].suppressed ? a[0].miles - b[0].miles : b[1].q[2] - a[1].q[2]));
-  const mmx = scaleMax(mrows.map(r => r[1]));
-  $('metros-sub').textContent = `${discName(S.disc)} · ${who}${act.length ? ' · ' + act.map(a => a.label).join(', ') : ''} · tap to select`;
-  const mr = rowsHTML(mrows.map(([m, est]) => [m.name, est, {sel: m.id === S.metro, click: m.id, mark: m.fit_flag ? ' †' : ''}]), mmx);
-  $('metro-rows').innerHTML = mr.h; $('metro-gone').textContent = goneText(mr.gone, mrows.length);
-  LAST.metros = {cols: ['Metro', 'Miles from Cincinnati', ...TABLE_COLS.slice(1)], rows: tableRows(mrows.map(([m, est]) => [m.name, est])).map((r, i) => [r[0], Math.round(mrows[i][0].miles), ...r.slice(1)]), meta: csvMeta, file: 'by-metro'};
 
   /* split */
   const dim = S.split, n = dim === 'fam' ? FAM.length : META.dims[dim].length;
   const srows = [];
   for (let v = 0; v < n; v++){
     const s2 = {...S};
-    if (dim === 'fam') s2.disc = 'fam:' + FAM[v].id; else s2[dim] = v;
-    srows.push([valLabel(dim, v), estimate(s2), {sel: dim === 'fam' ? S.disc === s2.disc : S[dim] === v}]);
+    if (dim === 'fam') s2.disc = ['fam:' + FAM[v].id]; else s2[dim] = [v];
+    srows.push([valLabel(dim, v), estimate(s2), {sel: dim === 'fam' ? S.disc.includes(s2.disc[0]) : S[dim].includes(v)}]);
   }
-  const smx = scaleMax(srows.map(r => r[1]));
   $('split-title').textContent = 'By ' + DIMLABEL[dim].toLowerCase();
   $('split-sub').textContent = `${discName(S.disc)} · ${metroName(S.metro)} · ${who}` + (dim === 'ind' ? ' · employer’s industry' : '');
-  const sr = rowsHTML(srows, smx);
+  const sr = rowsHTML(srows, scaleMax(srows.map(r => r[1])));
   $('split-rows').innerHTML = sr.h; $('split-gone').textContent = goneText(sr.gone, srows.length);
   LAST.split = {cols: [DIMLABEL[dim], ...TABLE_COLS.slice(1)], rows: tableRows(srows.map(r => [r[0], r[1]])), meta: csvMeta, file: 'by-' + dim};
 
   /* OEWS reference */
   const rr = refRows(S);
   if (!rr){
-    $('ref-sub').textContent = 'BLS publishes each metro separately — pick a single metro to compare.';
+    $('ref-sub').textContent = S.metro.length > 1 ? 'BLS publishes each metro separately — select a single metro to compare.' : 'BLS publishes each metro separately — pick a single metro to compare.';
     $('ref-body').innerHTML = ''; $('ref-tools').style.display = 'none'; LAST.ref = null;
   } else {
-    $('ref-sub').textContent = `BLS OEWS, May 2025 · ${METRO[S.metro].name} · all workers, not filtered by demographics`;
+    const M = METRO[S.metro[0]];
+    $('ref-sub').textContent = `BLS OEWS, May 2025 · ${M.name} · all workers, not filtered by demographics`;
     const cols = ['Occupation (SOC)', 'Employment', 'P10', 'P25', 'Median', 'P75', 'P90'];
     const rows = rr.map(r => [`${r.name} (${r.occ.slice(0, 2)}-${r.occ.slice(2)})`, ...(r.v ? r.v.map(x => x == null ? 'not published' : x) : ['not published', '', '', '', '', ''])]);
     const shown = rr.filter(r => r.v && r.v[3] != null).sort((a, b) => b.v[3] - a.v[3]);
@@ -701,12 +891,11 @@ function render(){
       b += `<li data-tip="${k}" aria-label="${esc(r.name)}: BLS median ${money(q[2])}"><span class="nm">${esc(r.name)}</span><div class="bar" aria-hidden="true">${marks(q, rmx)}</div><span class="v">${k$(q[2])}${emp != null ? `<small>${sig2(emp)} jobs</small>` : ''}</span></li>`;
     }
     const missing = rr.filter(r => !(r.v && r.v[3] != null)).map(r => r.name);
-    $('ref-body').innerHTML = (b ? `<div class="legend" aria-hidden="true"><span><i style="background:var(--ref-o)"></i>10th–90th pct</span><span><i style="background:var(--ref-i)"></i>Middle 50%</span><span><i class="dia"></i>BLS median</span></div><ul class="rows ref-row">${b}<li class="axisrow" aria-hidden="true">${axisHTML(rmx)}</li></ul>` : '') +
+    $('ref-body').innerHTML = (b ? `<div class="legend" aria-hidden="true"><span><i style="background:var(--ref-o)"></i>10th–90th pct</span><span><i style="background:var(--ref-i)"></i>Middle 50%</span><span><i class="dia ink"></i>BLS median</span></div><ul class="rows ref-row">${b}<li class="axisrow" aria-hidden="true">${axisHTML(rmx)}</li></ul>` : '') +
       (missing.length ? `<p class="gone">Not published by BLS for this metro: ${esc(missing.join(', '))}.</p>` : '');
     $('ref-tools').style.display = '';
-    LAST.ref = {cols, rows, meta: [`# BLS OEWS May 2025, ${METRO[S.metro].name} (CBSA ${S.metro}), cross-industry, annual wages`], file: 'bls-oews-reference'};
+    LAST.ref = {cols, rows, meta: [`# BLS OEWS May 2025, ${M.name} (CBSA ${S.metro[0]}), cross-industry, annual wages`], file: 'bls-oews-reference'};
   }
-  // re-open any tables the viewer had open
   for (const k of OPEN) showTable(k, true);
 }
 const OPEN = new Set();
@@ -721,9 +910,12 @@ document.addEventListener('click', e => {
   const v = e.target.closest('[data-view]'); if (v){ showTable(v.dataset.view, !OPEN.has(v.dataset.view)); return; }
   const c = e.target.closest('[data-csv]');
   if (c){ const t = LAST[c.dataset.csv]; if (t) saveFile(`salary-explorer-${t.file}.csv`, t.meta.join('\n') + '\n' + csv(t.cols, t.rows)); return; }
-  const p = e.target.closest('[data-pick]'); if (p){ S.metro = p.dataset.pick; onChange(); $('hero').scrollIntoView({block: 'start', behavior: 'smooth'}); }
+  const u = e.target.closest('[data-unpick]');
+  if (u){ const k = u.dataset.unpick, val = DIMS.includes(k) ? +u.dataset.val : u.dataset.val; S[k] = S[k].filter(x => x !== val); onChange(); return; }
+  const p = e.target.closest('[data-pick]');
+  if (p){ S.metro = [p.dataset.pick]; onChange(); $('hero').scrollIntoView({block: 'start', behavior: 'smooth'}); }
 });
-document.addEventListener('keydown', e => { const p = e.target.closest && e.target.closest('[data-pick]'); if (p && (e.key === 'Enter' || e.key === ' ')){ e.preventDefault(); p.click(); } });
+document.addEventListener('keydown', e => { const p = e.target.closest && e.target.closest('li[data-pick]'); if (p && (e.key === 'Enter' || e.key === ' ')){ e.preventDefault(); p.click(); } });
 
 /* ---------- methodology ---------- */
 function methodology(){
@@ -733,16 +925,19 @@ function methodology(){
   $('method-body').innerHTML = `<div class="mgrid">
   <div><h3>Sources</h3><p>Census ACS 2020–2024 5-year microdata for OH, KY, IN and WV (${META.counts.records.toLocaleString('en-US')} wage earners; ${META.counts.ftyr.toLocaleString('en-US')} full-time). BLS OEWS May 2025 for employer-reported rates.</p></div>
   <div><h3>Who’s counted</h3><p>Employees 16+ with wages, by where they live. Full-time = 35+ hrs/week and 50+ weeks. All years in 2024 dollars.</p></div>
-  <div><h3>Geography</h3><p>${META.metros.length} metros within 180 mi of Cincinnati. Survey areas (PUMAs) are matched to metros by population; † marks a looser fit.</p>
+  <div><h3>Geography</h3><p>${META.metros.length} metros within 180 mi of Cincinnati (the ring on the map). Survey areas (PUMAs) are matched to metros by population; † marks a looser fit. Map pins sit on each metro’s first-named city.</p>
     <div class="mtools">${toolsHTML('fit')}</div></div>
+  <div><h3>Multi-select</h3><p>Tech roles are computed live from survey records, so several metros, families or groups pool into one estimate. Other occupations use precomputed tables: one metro and one demographic value at a time.</p></div>
   <div><h3>Statistics</h3><p>Weighted percentiles; 90% margins of error from 80 replicate weights. Hidden under ${r.min_n} responses; “Low sample” under ${r.caution_n} or when the margin exceeds ${r.caution_rel}% of the median.</p></div>
   <div><h3>ACS vs. BLS</h3><p>ACS is self-reported pay from past years; BLS is current employer pay. Expect BLS medians to run higher.</p></div>
   <div><h3>Tech families</h3><ul>${fams}</ul></div>
   </div><div class="tablewrap" id="tbl-fit"></div>`;
 }
 
-if (activeDims(readHash()).length) setMore(true);
-S = readHash(); writeHash(); methodology(); render();
+buildPickers();
+S = readHash(); writeHash();
+if (activeDims(S).length) disclose('moretoggle', 'morebody', true);
+methodology(); render();
 </script>
 </body>
 </html>
