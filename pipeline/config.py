@@ -3,6 +3,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 RAW, INTERIM, DATA, GEO = ROOT / 'data/raw', ROOT / 'data/interim', ROOT / 'data', ROOT / 'data/geo'
+INTERIM.mkdir(parents=True, exist_ok=True)
 
 STATES = ['39', '21', '18', '54']            # OH, KY, IN, WV
 CINCY = (39.1031, -84.5120)                   # downtown Cincinnati

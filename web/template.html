@@ -224,6 +224,8 @@ h2{font-size:1.12rem;font-weight:800;margin:0;letter-spacing:-.015em}
 /* Detail (hero) */
 .hero.card{background:linear-gradient(160deg,#0B2545 0%,#13315C 100%);border-color:#13315C;color:#fff}
 .hero-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+@media (max-width:520px){.hero-top{gap:8px}.hero-top .tools{gap:4px}.hero-top .btn.icon{padding:6px 7px}}   /* four tool icons fit at 360px */
+@media (max-width:380px){.hero-top .tools{flex-direction:column}}
 .kicker{font-size:.85rem;color:var(--ink-2);font-weight:600;margin:0}
 .kicker b{color:#F2C14E;font-weight:700;text-transform:uppercase;letter-spacing:.08em;font-size:.7rem;display:block;margin-bottom:2px}
 .big{font-size:clamp(2.9rem,9vw,4.4rem);font-weight:800;letter-spacing:-.04em;line-height:1;margin:8px 0 6px}
@@ -1072,6 +1074,8 @@ async function saveFile(name, text){
    BLS: OEWS May releases for one occupation in one metro, as published (not inflation-adjusted).
    The drill-down only appears when the build includes this data (META.years + COL.yr / D.oewsHist). */
 const ACS_YEARS = META.years || [], OEWS_H = D.oewsHist || {};
+// May 2019-2020 OEWS used combined SOC codes for these (e.g. 15-1256 = developers + QA testers), so their BLS line starts in 2021.
+const OEWS_COMBINED = new Set(['151242', '151243', '151252', '151253', '151254', '151255', '152051']);
 const HAS_TREND = ACS_YEARS.length > 0 && !!COL.yr;
 const TRENDS = {}; let TRN = 0;
 function trendKey(spec){ const k = 'r' + (TRN++); TRENDS[k] = spec; return k; }
@@ -1100,20 +1104,22 @@ function openTrend(k){
   const acs = spec.blsOnly ? [] : acsSeries(sel), bls = occ && single ? blsSeries(asList(sel.metro)[0], occ.occ) : [];
   const ok = acs.filter(p => !p.e.suppressed);
   hideTip();
-  const years = [...new Set([...acs.map(p => p.year), ...bls.map(p => p.year)])].sort();
+  const ys = [...acs.map(p => p.year), ...bls.map(p => p.year)], years = [];
+  for (let y = Math.min(...ys); y <= Math.max(...ys); y++) years.push(y);   // every year, so a missing one keeps its width
   let body = '';
   if (!ok.length && !bls.length){
     body = `<div class="empty">${acs.some(p => p.e.unsupported) ? 'Year-by-year figures for this occupation group are available without demographic filters. Remove the filter to see the trend.' : 'Too few survey responses in any single year to show a trend here. Try a broader selection or a combined metro.'}</div>`;
   } else body = trendChart(years, acs, bls, occ);
   const chg = (a, b) => (b / a - 1) * 100, pct = v => (v >= 0 ? '+' : '') + v.toFixed(0) + '%';
   const facts = [];
-  if (ok.length >= 2){ const a = ok[0], b = ok[ok.length - 1]; facts.push(`<div class="tf"><i class="sw acs"></i><b>${pct(chg(a.e.q[2], b.e.q[2]))}</b><span>ACS median, ${a.year}→${b.year}, after inflation</span></div>`); }
+  if (ok.length >= 2){ const a = ok[0], b = ok[ok.length - 1]; const noise = Math.abs(b.e.q[2] - a.e.q[2]) < Math.hypot(a.e.moe[2], b.e.moe[2]);   // difference inside the combined 90% MOE
+    facts.push(`<div class="tf"><i class="sw acs"></i><b>${pct(chg(a.e.q[2], b.e.q[2]))}</b><span>ACS median, ${a.year}→${b.year}, after inflation${noise ? ' · within the margin of error' : ''}</span></div>`); }
   if (bls.length >= 2){ const a = bls[0], b = bls[bls.length - 1]; facts.push(`<div class="tf"><i class="sw bls"></i><b>${pct(chg(a.q[2], b.q[2]))}</b><span>BLS median, May ${a.year}→May ${b.year}, not inflation-adjusted</span></div>`); }
   const thin = ok.some(p => p.e.caution), noAcs = !spec.blsOnly && acs.length && acs.every(p => p.e.unsupported);
   $('trend-title').textContent = spec.label;
   $('trend-sub').textContent = [S.w === 'ftyr' || sel.w === 'ftyr' ? 'Full-time' : 'All earners', spec.context].filter(Boolean).join(' · ');
   $('trend-body').innerHTML = body + (facts.length ? `<div class="tfacts">${facts.join('')}</div>` : '') +
-    `<p class="tnote">${noAcs ? 'The survey line for this occupation group is available without demographic filters; the BLS line is shown on its own. ' : ''}${thin ? 'Single survey years have about a fifth of the pooled sample, so some points carry wide margins (shaded band = middle 50%). ' : 'Shaded band = middle 50% of ACS pay. '}ACS years are survey years in 2024 dollars; BLS values are as published each May.${occ && bls.length ? ` BLS line: ${esc(occ.name)}.` : ''}</p>`;
+    `<p class="tnote">${noAcs ? 'The survey line for this occupation group is available without demographic filters; the BLS line is shown on its own. ' : ''}${!ok.length ? (spec.blsOnly || noAcs ? '' : 'Too few survey responses in any single year for a survey line here (each year has about a fifth of the pooled sample). ') : thin ? 'Single survey years have about a fifth of the pooled sample, so some points carry wide margins (shaded band = middle 50%). ' : 'Shaded band = middle 50% of ACS pay. '}${bls.some((p, i) => i && p.year !== bls[i - 1].year + 1) ? 'Gaps in the BLS line are years BLS didn’t publish this figure. ' : ''}ACS years are survey years in 2024 dollars; BLS values are as published each May.${occ && bls.length ? ` BLS line: ${esc(occ.name)}.` : ''}${occ && bls.length && OEWS_COMBINED.has(occ.occ) && bls[0].year > 2020 ? ' Before May 2021 BLS published this occupation only inside a combined category, so its line starts there.' : ''}</p>`;
   const cols = ['Year', 'Source', 'Responses (n)', 'P25', 'Median', 'P75', 'Median MOE (90%)'];
   const rows = [...acs.map(p => p.e.suppressed ? [p.year, 'ACS (2024 $)', p.e.unknownN || p.e.unsupported ? '' : p.e.n, '', '', '', ''] : [p.year, 'ACS (2024 $)', p.e.n, Math.round(p.e.q[1]), Math.round(p.e.q[2]), Math.round(p.e.q[3]), Math.round(p.e.moe[2])]),
     ...bls.map(p => [p.year, 'BLS OEWS May (nominal)', '', p.q[1] ?? '', p.q[2], p.q[3] ?? '', ''])];
@@ -1139,7 +1145,8 @@ function trendChart(years, acs, bls, occ){
   }
   for (const p of acs) if (!p.e.suppressed)
     g += `<circle class="pt acs${p.e.caution ? ' thin' : ''}" cx="${x(p.year)}" cy="${yv(p.e.q[2])}" r="5" data-tip="${estTip('ACS ' + p.year + ' (2024 $)', p.e)}" tabindex="0" aria-label="ACS ${p.year}: median ${money(p.e.q[2])}"/>`;
-  if (bls.length > 1) g += `<path class="ln bls" d="M${bls.map(p => `${x(p.year)} ${yv(p.q[2])}`).join('L')}"/>`;
+  const bruns = []; for (const p of bls){ const r = bruns[bruns.length - 1]; if (r && p.year === r[r.length - 1].year + 1) r.push(p); else bruns.push([p]); }
+  for (const r of bruns) if (r.length > 1) g += `<path class="ln bls" d="M${r.map(p => `${x(p.year)} ${yv(p.q[2])}`).join('L')}"/>`;
   for (const p of bls) g += `<rect class="pt bls" x="${x(p.year) - 4.5}" y="${yv(p.q[2]) - 4.5}" width="9" height="9" rx="1.5" transform="rotate(45 ${x(p.year)} ${yv(p.q[2])})" data-tip="${tipData('BLS May ' + p.year, [['Median', money(p.q[2])], ['Middle 50%', p.q[1] != null && p.q[3] != null ? `${k$(p.q[1])} – ${k$(p.q[3])}` : 'not published'], ['Jobs', p.emp != null ? p.emp.toLocaleString('en-US') : 'not published']])}" tabindex="0" aria-label="BLS May ${p.year}: median ${money(p.q[2])}"/>`;
   // direct labels at the line ends
   const lastA = acs.filter(p => !p.e.suppressed).pop(), lastB = bls[bls.length - 1];

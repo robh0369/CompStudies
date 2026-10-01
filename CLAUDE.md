@@ -63,11 +63,13 @@ the session's network settings must allow those hosts). `pip install -r requirem
 - Pay = ACS WAGP: wages, salary, commissions, bonuses, tips (all jobs, past 12 months). No equity, benefits or retirement.
   BLS OEWS = base pay incl. commissions/production bonuses; excludes overtime, non-production bonuses, equity.
 
-## Trend view (built, waiting on data)
-- Coded end to end but the committed page has no trend data yet, so the drill-down stays hidden (`HAS_TREND`).
-- Needs a full rebuild with www2.census.gov and www.bls.gov reachable: 03 adds `yr` (from ADJINC), 05 adds `…|yr|<i>` cube
-  cells, 06 adds `cols.yr`, 04b builds OEWS history, 07 inlines `meta.years` + `oewsHist`. Then re-render the videos so
-  they can show the trend view. README "Data roadmap" lists further sources.
+## Trend view (live)
+- Built from real data (2026-10): 03 adds `yr` (from ADJINC, asserts 5 values), 05 adds `…|yr|<i>` cube cells, 06 adds
+  `cols.yr`, 04b builds OEWS May 2019–2024 history (+ May 2025 from 04), 07 inlines `meta.years` + `oewsHist`.
+- OEWS 2019–2020 use combined SOC codes for 7 tech occupations (`OEWS_COMBINED` in the template); don't back-fill them.
+  The trend chart spaces every year and breaks lines at missing years. README "Trend view" lists the data gaps.
+- Both videos include a trend scene (promo/stage.js, 14.41–17.5 s). Scene times there are written on the original cuts and
+  remapped by `retime()`. README "Data roadmap" has the confirmed URLs for items 3–5.
 
 ## Data-access gotchas
 - download.bls.gov returns 403 to anonymous agents; send a User-Agent containing a contact email.

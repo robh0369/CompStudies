@@ -14,7 +14,7 @@ COLS = {'AREA': 'cbsa', 'OCC_CODE': 'occ', 'TOT_EMP': 'employment', 'A_PCT10': '
 frames = []
 for year in OEWS_YEARS[:-1]:
     z = zipfile.ZipFile(RAW/f'oesm{str(year)[2:]}ma.zip')
-    name = next(n for n in z.namelist() if n.lower().endswith(('.xlsx', '.xls')) and 'msa' in n.lower() and 'nonmsa' not in n.lower())
+    name = next(n for n in z.namelist() if n.lower().endswith(('.xlsx', '.xls')) and '~$' not in n and 'msa' in n.lower() and 'nonmsa' not in n.lower())
     x = pd.read_excel(io.BytesIO(z.read(name)), dtype=str)
     x.columns = [c.upper() for c in x.columns]
     x = x[list(COLS)].rename(columns=COLS)
