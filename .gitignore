@@ -3,3 +3,4 @@ data/interim/
 __pycache__/
 *.pyc
 .DS_Store
+promo/frames/

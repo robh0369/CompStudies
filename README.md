@@ -6,6 +6,9 @@ shows its sample size and margin of error, and every view has a shareable link.
 
 **Live page:** https://robh0369.github.io/CompStudies/ (GitHub Pages serves `docs/index.html` from `main`).
 
+**Explainer video (45 s):** [docs/demo/salary-explorer-demo.mp4](docs/demo/salary-explorer-demo.mp4). Rebuild with
+`node promo/render.mjs` (Playwright + ffmpeg; see the header of `promo/render.mjs`). Music is the TaskList promo track.
+
 ## Data
 | Source | Use |
 |---|---|
