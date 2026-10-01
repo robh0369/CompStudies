@@ -19,6 +19,12 @@ see the header of `promo/render.mjs`). Music is the TaskList promo track.
 | 2020 tract→PUMA relationship file + 2020 tract populations (Census) | PUMA→metro crosswalk |
 | OMB 2023 CBSA delineation (Census `list1_2023.xlsx`) | Metro definitions |
 
+## Get the data
+The page's "Get the data" section downloads every number as CSV, built in the browser from the inlined data:
+all precomputed estimates (every metro × occupation group × demographic and survey year), every tech-family estimate
+(metro × family × demographic and survey year), BLS May 2025 rates, BLS May 2019–2025 history and the metro fit table.
+It also links to each original source and to this repository's `data/` and `pipeline/`.
+
 ## Method in brief
 - **Universe:** wage-and-salary workers 16+ with wages > 0 (class of worker 1–5). Default view is full-time,
   year-round (35+ hrs/week, 50+ weeks); toggle for all wage earners. Wages × `ADJINC` → 2024 dollars.

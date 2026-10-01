@@ -306,6 +306,8 @@ h2{font-size:1.12rem;font-weight:800;margin:0;letter-spacing:-.015em}
 .tip dl{display:grid;grid-template-columns:auto auto;gap:2px 14px;margin:0;font-variant-numeric:tabular-nums}
 .tip dt{color:#9DB4D3} .tip dd{margin:0;text-align:right;font-weight:600}
 .tip .hint{color:#F2C14E;font-size:.72rem;margin-top:6px}
+.tip .tclose{display:none;color:#9DB4D3;font-size:.72rem;margin-top:8px;border-top:1px solid #24497A;padding-top:6px}
+.tip.touch .tclose{display:block}
 
 /* Tables */
 .tablewrap{overflow-x:auto;margin-top:14px;display:none;border:1px solid var(--rule);border-radius:12px;background:var(--card);color:var(--ink)}
@@ -355,6 +357,17 @@ i.sw.acs{background:var(--band-i)} i.sw.bls{background:var(--ref)}
 .method-toggle{width:100%;cursor:pointer;background:none;border:0;padding:0;display:flex;align-items:center;gap:8px;font-weight:800;font-family:var(--display);font-size:1rem}
 .method-toggle .chev{margin-left:auto}
 .method-toggle[aria-expanded="true"] .chev{transform:rotate(180deg)}
+#sec-data{padding-bottom:20px}
+.dlist{list-style:none;margin:14px 0 0;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px}
+.dlist button{width:100%;display:flex;align-items:center;gap:12px;text-align:left;cursor:pointer;background:var(--wash);color:var(--ink);
+  border:1px solid var(--rule);border-radius:12px;padding:12px 14px;font:inherit;min-height:56px}
+.dlist button:hover{border-color:var(--sky)}
+.dlist .dl-i{flex:none;display:grid;place-items:center;width:34px;height:34px;border-radius:9px;background:var(--card);color:var(--sky-ink)}
+.dlist b{display:block;font-size:.9rem}
+.dlist small{display:block;color:var(--muted);font-size:.76rem;margin-top:2px}
+.srch{font-size:.7rem;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin:22px 0 6px}
+.srcs{margin:0;padding-left:18px;font-size:.85rem;color:var(--ink-2)}
+.srcs li{margin:6px 0}
 .mgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:18px 28px;margin-top:16px}
 .mgrid h3{font-size:.7rem;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin:0 0 4px}
 .mgrid p,.mgrid li{font-size:.85rem;color:var(--ink-2);margin:0}
@@ -444,13 +457,34 @@ footer{color:var(--muted);font-size:.75rem;padding:0 0 40px}
     <div class="tablewrap" id="tbl-ref"></div>
   </section>
 
+  <section class="card" id="sec-data">
+    <div class="shead"><div><h2>Get the data</h2><p class="sub">Everything behind this page as CSV, and the public sources it comes from.</p></div></div>
+    <ul class="dlist" id="dl-list"></ul>
+    <h3 class="srch">Original sources</h3>
+    <ul class="srcs">
+      <li><a href="https://www.census.gov/programs-surveys/acs/microdata.html" target="_blank" rel="noopener">Census ACS Public Use Microdata (PUMS)</a> · 2020–2024 5-year person files for
+        <a href="https://www2.census.gov/programs-surveys/acs/data/pums/2024/5-Year/" target="_blank" rel="noopener">OH, KY, IN and WV</a> ·
+        <a href="https://www2.census.gov/programs-surveys/acs/tech_docs/pums/data_dict/PUMS_Data_Dictionary_2020-2024.csv" target="_blank" rel="noopener">data dictionary</a></li>
+      <li><a href="https://www.bls.gov/oes/" target="_blank" rel="noopener">BLS Occupational Employment and Wage Statistics (OEWS)</a> ·
+        <a href="https://www.bls.gov/oes/tables.htm" target="_blank" rel="noopener">May 2019–2025 tables</a> ·
+        <a href="https://download.bls.gov/pub/time.series/oe/" target="_blank" rel="noopener">time-series files</a></li>
+      <li><a href="https://www2.census.gov/geo/docs/maps-data/data/rel2020/2020_Census_Tract_to_2020_PUMA.txt" target="_blank" rel="noopener">2020 tract-to-PUMA relationship file</a> and
+        <a href="https://www.census.gov/geographies/reference-files/time-series/geo/centers-population.html" target="_blank" rel="noopener">2020 tract population centers</a> (Census)</li>
+      <li><a href="https://www.census.gov/geographies/reference-files/time-series/demo/metro-micro/delineation-files.html" target="_blank" rel="noopener">OMB 2023 metro area delineations</a> (Census)</li>
+      <li><a href="https://github.com/topojson/us-atlas" target="_blank" rel="noopener">us-atlas</a> map outlines (Census cartographic boundaries)</li>
+      <li><a href="https://github.com/robh0369/CompStudies" target="_blank" rel="noopener">This page’s code and data on GitHub</a> ·
+        <a href="https://github.com/robh0369/CompStudies/tree/main/data" target="_blank" rel="noopener">committed CSVs</a> ·
+        <a href="https://github.com/robh0369/CompStudies/tree/main/pipeline" target="_blank" rel="noopener">pipeline that rebuilds every number</a></li>
+    </ul>
+  </section>
+
   <section class="card">
     <button class="method-toggle" id="methodtoggle" aria-expanded="false" aria-controls="method-body">About the data</button>
     <div id="method-body" hidden></div>
   </section>
 </main>
 </div>
-<footer>Sources: U.S. Census Bureau ACS 2020–2024 5-year PUMS; U.S. Bureau of Labor Statistics OEWS, May 2025; Census cartographic boundaries (via us-atlas). Estimates are this page’s own calculations, not official figures.</footer>
+<footer>Sources: <a href="https://www.census.gov/programs-surveys/acs/microdata.html" target="_blank" rel="noopener">U.S. Census Bureau ACS 2020–2024 5-year PUMS</a>; <a href="https://www.bls.gov/oes/" target="_blank" rel="noopener">U.S. Bureau of Labor Statistics OEWS</a>, May 2019–2025; Census cartographic boundaries (via <a href="https://github.com/topojson/us-atlas" target="_blank" rel="noopener">us-atlas</a>). Estimates are this page’s own calculations, not official figures. <a href="#sec-data">Get the data</a>.</footer>
 </div>
 <dialog class="sheet" id="trend" aria-labelledby="trend-title">
   <div class="sheet-h"><div><h2 id="trend-title"></h2><p class="sub" id="trend-sub"></p></div>
@@ -1037,17 +1071,28 @@ function renderMap(mrows){
 }
 matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => render());
 
-/* ---------- tooltip (mouse hover and keyboard focus; touch uses the table view) ---------- */
-const TIP = $('tip');
+/* ---------- tooltip (mouse hover, keyboard focus, and tap on touch screens) ---------- */
+/* On touch, a tap focuses the row and shows its tip; the next tap anywhere (the same row included) closes it. */
+const TIP = $('tip'); let TIPEL = null, TOUCH = false;
 function showTip(el){
   const k = el.dataset.tip; if (!TIPS[k]) return;
-  TIP.innerHTML = TIPS[k]; TIP.classList.add('show');
+  const host = el.closest('dialog[open]') || document.body; if (TIP.parentNode !== host) host.appendChild(TIP);   // a modal dialog sits above the page, so the tip moves into it
+  TIP.innerHTML = TIPS[k] + '<div class="tclose">Tap anywhere to close</div>'; TIP.classList.add('show'); TIP.classList.toggle('touch', TOUCH); TIPEL = el;
   const r = el.querySelector('.bar') ? el.querySelector('.bar').getBoundingClientRect() : el.getBoundingClientRect(), t = TIP.getBoundingClientRect();
   const x = Math.max(8, Math.min(window.innerWidth - t.width - 8, r.left + r.width / 2 - t.width / 2));
   const y = r.top - t.height - 10 < 8 ? r.bottom + 10 : r.top - t.height - 10;
   TIP.style.left = x + 'px'; TIP.style.top = y + 'px';
 }
-function hideTip(){ TIP.classList.remove('show'); }
+function hideTip(){ TIP.classList.remove('show'); TIPEL = null; }
+document.addEventListener('pointerdown', e => {
+  TOUCH = e.pointerType !== 'mouse';
+  if (!TOUCH || !TIPEL) return;
+  const el = TIPEL; hideTip();
+  if (document.activeElement === el) el.blur();   // so tapping the same row again reopens it
+  if (e.target.closest('[data-tip]') === el) e.preventDefault();   // the closing tap shouldn't refocus it
+}, true);
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && TIPEL) hideTip(); });
+document.querySelectorAll('dialog').forEach(d => d.addEventListener('close', hideTip));
 document.addEventListener('pointerover', e => { if (e.pointerType !== 'mouse') return; const el = e.target.closest('[data-tip]'); el ? showTip(el) : hideTip(); });
 document.addEventListener('focusin', e => { const el = e.target.closest && e.target.closest('[data-tip]'); el ? showTip(el) : hideTip(); });
 window.addEventListener('scroll', hideTip, {passive: true});
@@ -1316,6 +1361,48 @@ const PAY_HTML = `<dl class="paydl">
   <dt>Not included</dt><dd>Stock and equity grants (not asked about directly, so mostly missing), benefits, retirement contributions and self-employment income.</dd>
   <dt>BLS (gold)</dt><dd>Employer-reported base pay, including commissions and production bonuses. Excludes overtime, annual or other non-production bonuses, and equity.</dd>
 </dl>`;
+
+/* ---------- full exports (Get the data) ---------- */
+/* Built on demand from the data inlined in this page, so they match what the charts show. */
+const MNAME = id => id === 'REGION' ? 'All 24 metros' : id === 'SMALL' ? '20 smaller metros combined' : (METRO[id] || {}).name || id;
+const QCOLS = ['P10', 'P25', 'Median', 'P75', 'P90'], MOECOLS = QCOLS.map(c => c + ' MOE (90%)');
+const estCells = e => e.suppressed ? [e.unknownN || e.unsupported ? '' : e.n, '', ...QCOLS.map(() => ''), ...QCOLS.map(() => ''), 'suppressed (n<' + MIN_N + ')']
+  : [e.n, Math.round(e.pop), ...e.q.map(Math.round), ...e.moe.map(Math.round), e.caution ? 'caution' : 'ok'];
+const dimVal = (dim, v) => dim === '-' ? '' : dim === 'yr' ? ACS_YEARS[+v] : META.dims[dim][+v];
+const EXPORTS = [
+  {id: 'cube', title: 'All occupations: every estimate', note: 'Each metro × occupation group × demographic and survey year, full-time and all earners (ACS, 2024 $)', build(){
+    const socName = Object.fromEntries(META.soc.map(g => [g.id, g.label]));
+    const rows = Object.keys(CUBE).sort().map(k => { const [w, m, d, dim, v] = k.split('|');
+      return [w === 'ftyr' ? 'Full-time year-round' : 'All wage earners', m, MNAME(m), d === 'ALL' ? 'All occupations' : socName[d] || d,
+        dim === '-' ? '' : dim === 'yr' ? 'Survey year' : DIMLABEL[dim], dimVal(dim, v), ...estCells(cubeGet(w, m, d, dim, v))]; });
+    return {cols: ['Workers', 'Metro code', 'Metro', 'Occupation group', 'Breakdown', 'Group', 'Responses (n)', 'Est. workers', ...QCOLS, ...MOECOLS, 'Status'], rows,
+      meta: ['# ACS 2020-2024 5-year PUMS, annual wages in 2024 dollars; MOE = 90% from 80 replicate weights. Blank breakdown = everyone in the metro and group.']}; }},
+  {id: 'tech', title: 'Tech roles: every estimate', note: 'Each metro × tech family × demographic and survey year, full-time and all earners (ACS, 2024 $)', build(){
+    const rows = [], discs = [['tech', 'All tech roles'], ...FAM.map(f => ['fam:' + f.id, f.label])];
+    const cuts = [['-', '-'], ...ACS_YEARS.map((y, i) => ['yr', i]), ...DIMS.flatMap(d => META.dims[d].map((_, v) => [d, v]))];
+    for (const w of ['ftyr', 'all']) for (const m of ['REGION', ...META.metros.map(x => x.id)]) for (const [d, dl] of discs) for (const [dim, v] of cuts){
+      const sel = {w, metro: [m], disc: [d], yr: dim === 'yr' ? v : null}; if (DIMS.includes(dim)) sel[dim] = [v];
+      rows.push([w === 'ftyr' ? 'Full-time year-round' : 'All wage earners', m, MNAME(m), dl, dim === '-' ? '' : dim === 'yr' ? 'Survey year' : DIMLABEL[dim], dimVal(dim, v), ...estCells(estimateRows(microSelect(sel)))]);
+    }
+    return {cols: ['Workers', 'Metro code', 'Metro', 'Tech family', 'Breakdown', 'Group', 'Responses (n)', 'Est. workers', ...QCOLS, ...MOECOLS, 'Status'], rows,
+      meta: ['# ACS 2020-2024 5-year PUMS, tech families as defined on this page, annual wages in 2024 dollars; MOE = 90% from 80 replicate weights.', '# Combinations of several filters can be computed on the page itself.']}; }},
+  {id: 'oews', title: 'BLS employer-reported rates, May 2025', note: 'Each metro × occupation: jobs and annual pay percentiles (BLS OEWS)', build(){
+    const rows = []; for (const m of META.metros) for (const [occ, v] of Object.entries(OEWS[m.id] || {}))
+      rows.push([m.id, m.name, occ.slice(0, 2) + '-' + occ.slice(2), META.occnames[occ] || occ, ...v.map(x => x == null ? '' : x)]);
+    return {cols: ['Metro code', 'Metro', 'SOC', 'Occupation', 'Employment', ...QCOLS], rows, meta: ['# BLS OEWS May 2025, cross-industry, nominal annual wages. Blank = not published by BLS.']}; }},
+  {id: 'hist', title: 'BLS rates by year, May 2019–2025', note: 'The BLS line in the trend charts: metro × occupation × year', build(){
+    const rows = []; for (const m of META.metros) for (const [occ, h] of Object.entries(OEWS_H[m.id] || {})) for (const [y, ...v] of h)
+      rows.push([y, m.id, m.name, occ.slice(0, 2) + '-' + occ.slice(2), META.occnames[occ] || occ, ...v.map(x => x == null ? '' : x)]);
+    return {cols: ['May of year', 'Metro code', 'Metro', 'SOC', 'Occupation', 'Employment', ...QCOLS], rows, meta: ['# BLS OEWS May releases, cross-industry, nominal annual wages (not inflation-adjusted). Blank = not published.']}; }},
+  {id: 'fit', title: 'Metro boundaries and survey fit', note: 'Distance, survey areas used, coverage and fit flag for each metro', build(){ methodology(); return LAST.fit; }},
+];
+$('dl-list').innerHTML = EXPORTS.filter(x => x.id !== 'hist' || Object.keys(OEWS_H).length).map(x =>
+  `<li><button data-export="${x.id}"><span class="dl-i">${ICON.down}</span><span><b>${esc(x.title)}</b><small>${esc(x.note)} · CSV</small></span></button></li>`).join('');
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-export]'); if (!b) return;
+  const x = EXPORTS.find(z => z.id === b.dataset.export); toast('Preparing CSV…');
+  setTimeout(() => { const t = x.build(); saveFile(`salary-explorer-all-${x.id}.csv`, [...t.meta, '# Source page: ' + location.href.split('#')[0]].join('\n') + '\n' + csv(t.cols, t.rows)); }, 30);
+});
 
 /* ---------- methodology ---------- */
 function methodology(){
