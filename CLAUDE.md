@@ -31,6 +31,8 @@ pipeline/02..06_*.py      crosswalk → extract → OEWS → discipline cube →
 pipeline/07_build_page.py inlines data into web/template.html → docs/index.html, then runs verify_page.py
 pipeline/verify_page.py   JS-vs-Python parity check; needs only committed files plus Node
 pipeline/apply_template.py template → docs/index.html reusing the data already in the page (design-only edits)
+pipeline/04b_oews_history.py OEWS May 2019-2025 metro history -> data/oews_history_metros.csv (trend view)
+promo/                    45 s explainer: stage.html/js drive the real page; render.mjs [--vertical] -> docs/demo/*.mp4
 pipeline/make_geo.mjs     data/web/geo.json for the map (state outlines + a pin per metro) from npm us-atlas/cities.json
 web/template.html         EDIT THIS, never docs/index.html (generated)
 data/                     committed outputs: geo diagnostics, OEWS extract, every precomputed estimate, page payloads
@@ -60,6 +62,12 @@ the session's network settings must allow those hosts). `pip install -r requirem
 - Level guide is a rule of thumb (entry ≈ P10–P25, mid ≈ median, senior ≈ P75, lead ≈ P90); neither survey records level.
 - Pay = ACS WAGP: wages, salary, commissions, bonuses, tips (all jobs, past 12 months). No equity, benefits or retirement.
   BLS OEWS = base pay incl. commissions/production bonuses; excludes overtime, non-production bonuses, equity.
+
+## Trend view (built, waiting on data)
+- Coded end to end but the committed page has no trend data yet, so the drill-down stays hidden (`HAS_TREND`).
+- Needs a full rebuild with www2.census.gov and www.bls.gov reachable: 03 adds `yr` (from ADJINC), 05 adds `…|yr|<i>` cube
+  cells, 06 adds `cols.yr`, 04b builds OEWS history, 07 inlines `meta.years` + `oewsHist`. Then re-render the videos so
+  they can show the trend view. README "Data roadmap" lists further sources.
 
 ## Data-access gotchas
 - download.bls.gov returns 403 to anonymous agents; send a User-Agent containing a contact email.

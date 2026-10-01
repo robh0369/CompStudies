@@ -11,6 +11,7 @@ d = pd.read_pickle(INTERIM/'workers.pkl')
 metros = pd.read_csv(GEO/'metros.csv', dtype={'cbsa': str})
 wage = d.wage.to_numpy(); W = d[['PWGTP'] + REPS].to_numpy()
 dimcols = {k: d[k].to_numpy() for k in DIMS}
+yr = d.yr.to_numpy()
 metro_sets = {r.cbsa: d.CBSA.eq(r.cbsa).to_numpy() for r in metros.itertuples()}
 metro_sets[SMALL_ID] = ~d.CBSA.isin(BIG4).to_numpy()
 metro_sets[REGION_ID] = np.ones(len(d), bool)
@@ -42,12 +43,16 @@ for wt, wm in wtypes.items():
             for dim, col in dimcols.items():
                 for v in range(len(DIMS[dim])):
                     put(wt, mt, dc, dim, v, base & (col == v))
+            for y in range(len(ACS_YEARS)):                       # trend view: one cell per survey year
+                put(wt, mt, dc, 'yr', y, base & (yr == y))
     print(wt, 'done', round(time.time() - t0), 's')
 
 df = pd.DataFrame(rows)
 for dim, labels in DIMS.items():
     sel = df.dim == dim
     df.loc[sel, 'value'] = df.loc[sel, 'value'].map(lambda v: labels[int(v)])
+sel = df.dim == 'yr'
+df.loc[sel, 'value'] = df.loc[sel, 'value'].map(lambda v: ACS_YEARS[int(v)])
 df.to_csv(DATA/'estimates_disciplines.csv', index=False)
 (DATA/'web').mkdir(exist_ok=True)
 json.dump(cube, open(DATA/'web/cube.json', 'w'), separators=(',', ':'))

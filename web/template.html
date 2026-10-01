@@ -314,6 +314,41 @@ tr:last-child td{border-bottom:0}
 th:first-child,td:first-child{text-align:left}
 th{font-weight:700;color:var(--muted);background:var(--rule-2);font-size:.7rem;text-transform:uppercase;letter-spacing:.05em}
 
+/* Dialogs: trend drill-down and video tour */
+.sheet{border:0;padding:20px;border-radius:18px;background:var(--card);color:var(--ink);width:min(760px,calc(100vw - 24px));max-height:calc(100vh - 32px);
+  box-shadow:0 30px 80px rgba(6,20,42,.45)}
+.sheet::backdrop{background:rgba(6,20,42,.55);backdrop-filter:blur(2px)}
+.sheet-h{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:12px}
+.sheet h2{font-size:1.2rem}
+.tchart{display:block;width:100%;height:auto;overflow:visible}
+.tchart .gl{stroke:var(--rule);stroke-width:1}
+.tchart .ax{font:500 11px var(--font);fill:var(--muted)}
+.tchart .dl{font:800 13px var(--display);fill:var(--ink)}
+.tchart .band{fill:var(--band-o);opacity:.45}
+.tchart .ln{fill:none;stroke-width:2.5;stroke-linejoin:round;stroke-linecap:round}
+.tchart .ln.acs{stroke:var(--band-i)} .tchart .ln.bls{stroke:var(--ref)}
+.tchart .pt{stroke:var(--card);stroke-width:2;cursor:pointer}
+.tchart .pt.acs{fill:var(--dot)} .tchart .pt.bls{fill:var(--ref)}
+.tchart .pt.thin{fill:var(--card);stroke:var(--dot)}
+.legend.tl{margin:0 0 6px}
+.legend i.sw{width:16px;height:4px;border-radius:2px}
+i.sw.acs{background:var(--band-i)} i.sw.bls{background:var(--ref)}
+.tfacts{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px}
+.tf{display:flex;align-items:center;gap:8px;background:var(--rule-2);border-radius:10px;padding:8px 12px;font-size:.8rem;color:var(--ink-2)}
+.tf b{font:800 1.05rem var(--display);color:var(--ink)}
+.tf i.sw{display:inline-block;width:14px;height:4px;border-radius:2px}
+.tnote{font-size:.75rem;color:var(--muted);margin:10px 0 0}
+.trbtn{display:inline-grid;place-items:center;width:26px;height:22px;border:1px solid var(--rule);border-radius:6px;background:var(--card);color:var(--sky-ink);cursor:pointer;padding:0}
+.trbtn:hover{border-color:var(--sky)}
+.trbtn svg.i{width:14px;height:14px}
+.tourlink{background:none;border:0;padding:0;color:#F2C14E;font:inherit;font-weight:600;cursor:pointer;white-space:nowrap}
+.tourlink:hover{text-decoration:underline}
+.sheet.tour{width:min(1100px,calc(100vw - 24px))}
+.sheet.tour video{display:block;width:100%;border-radius:12px;background:#06142A}
+.sheet.tour.tall{width:min(420px,calc(100vw - 24px))}
+.sheet.tour.tall video{max-height:calc(100vh - 140px);object-fit:contain}
+@media (max-width:600px){.sheet{padding:16px}}
+
 /* Methodology */
 .method-toggle{width:100%;cursor:pointer;background:none;border:0;padding:0;display:flex;align-items:center;gap:8px;font-weight:800;font-family:var(--display);font-size:1rem}
 .method-toggle .chev{margin-left:auto}
@@ -335,7 +370,7 @@ footer{color:var(--muted);font-size:.75rem;padding:0 0 40px}
     <p class="eyebrow">Cincinnati region · 24 metros</p>
     <h1>Salary <span>explorer</span></h1>
   </div>
-  <p class="lede">Annual wages in 2024 dollars · ACS 2020–24 with BLS May 2025 as a market reference</p>
+  <p class="lede">Annual wages in 2024 dollars · ACS 2020–24 with BLS May 2025 as a market reference · <button class="tourlink" id="tourlink">▶ 45-second tour</button></p>
   <button class="btn gold" id="copylink" aria-label="Copy link to this view"></button>
 </header>
 </div></div>
@@ -415,6 +450,16 @@ footer{color:var(--muted);font-size:.75rem;padding:0 0 40px}
 </div>
 <footer>Sources: U.S. Census Bureau ACS 2020–2024 5-year PUMS; U.S. Bureau of Labor Statistics OEWS, May 2025; Census cartographic boundaries (via us-atlas). Estimates are this page’s own calculations, not official figures.</footer>
 </div>
+<dialog class="sheet" id="trend" aria-labelledby="trend-title">
+  <div class="sheet-h"><div><h2 id="trend-title"></h2><p class="sub" id="trend-sub"></p></div>
+    <div class="tools"><span data-tools="trend" style="display:flex;gap:6px"></span><button class="btn icon" data-close aria-label="Close">✕</button></div></div>
+  <div id="trend-body"></div>
+  <div class="tablewrap" id="tbl-trend"></div>
+</dialog>
+<dialog class="sheet tour" id="tour" aria-label="Video tour">
+  <div class="sheet-h"><div><h2>45-second tour</h2><p class="sub">How to explore the explorer · no sound needed</p></div><button class="btn icon" data-close aria-label="Close">✕</button></div>
+  <video id="tour-video" controls playsinline preload="none"></video>
+</dialog>
 <div class="tip" id="tip" role="tooltip"></div>
 <div class="toast" id="toast" role="status"></div>
 
@@ -484,6 +529,7 @@ function microSelect(sel, ignoreDim){
     const m = COL.metro[r];
     if (all ? false : small ? BIG4.has(m) : !mOK[m]) continue;
     if (!anyFam && !fOK[COL.fam[r]]) continue;
+    if (sel.yr != null && COL.yr[r] !== sel.yr) continue;
     let ok = true; for (const [c, okv] of dims) if (!okv[c[r]]) { ok = false; break; }
     if (ok) out.push(r);
   }
@@ -906,10 +952,11 @@ function rowsHTML(list, mx){
   const gone = [];
   for (const [label, e, opts = {}] of list){
     if (e.suppressed){ gone.push(label + (opts.mark || '')); continue; }
-    const cls = [opts.sel ? 'sel' : '', e.caution ? 'caut' : '', opts.click ? 'click' : ''].join(' ');
-    const data = opts.click ? ` data-pick="${esc(opts.click)}" tabindex="0" role="button"` : '';
+    const drill = HAS_TREND && opts.trend && !opts.click;
+    const cls = [opts.sel ? 'sel' : '', e.caution ? 'caut' : '', opts.click || drill ? 'click' : ''].join(' ');
+    const data = opts.click ? ` data-pick="${esc(opts.click)}" tabindex="0" role="button"` : drill ? ` data-trend="${opts.trend}" tabindex="0" role="button"` : '';
     const aria = `${label}: median ${money(e.q[2])}, plus or minus ${money(e.moe[2])}; middle half ${money(e.q[1])} to ${money(e.q[3])}; ${e.n} responses${e.caution ? '; low sample, use with caution' : ''}`;
-    h += `<li class="${cls}"${data} data-tip="${estTip(label + (opts.mark || ''), e)}" aria-label="${esc(aria)}"><span class="nm">${esc(label)}${opts.mark || ''}${e.caution ? THIN : ''}</span>` +
+    h += `<li class="${cls}"${data} data-tip="${estTip(label + (opts.mark || ''), e)}" aria-label="${esc(aria)}"><span class="nm">${esc(label)}${opts.mark || ''}${e.caution ? THIN : ''}${opts.click && opts.trend ? trendBtn(opts.trend, label) : ''}</span>` +
       `<div class="bar" aria-hidden="true">${marks(e.q, mx)}</div><span class="v">${k$(e.q[2])}<small>±${k$(e.moe[2]).slice(1)}</small></span></li>`;
   }
   if (h) h += `<li class="axisrow" aria-hidden="true">${axisHTML(mx)}</li>`;
@@ -1018,10 +1065,103 @@ async function saveFile(name, text){
   toast('CSV downloaded');
 }
 
+/* ---------- trend drill-down ---------- */
+/* Two series per view, both in dollars on one axis:
+   ACS: the five survey years of the 2020–24 file (recovered from ADJINC), all in 2024 dollars, computed live for tech
+        roles (microdata yr column) or read from the cube's 'yr' cells for other occupations (no demographic filters).
+   BLS: OEWS May releases for one occupation in one metro, as published (not inflation-adjusted).
+   The drill-down only appears when the build includes this data (META.years + COL.yr / D.oewsHist). */
+const ACS_YEARS = META.years || [], OEWS_H = D.oewsHist || {};
+const HAS_TREND = ACS_YEARS.length > 0 && !!COL.yr;
+const TRENDS = {}; let TRN = 0;
+function trendKey(spec){ const k = 'r' + (TRN++); TRENDS[k] = spec; return k; }
+function acsSeries(sel){
+  return ACS_YEARS.map((y, i) => {
+    let e;
+    if (isTech(sel)) e = estimateRows(microSelect({...sel, yr: i}));
+    else if (activeDims(sel).length) e = {n: 0, suppressed: true, unsupported: true};
+    else { const d0 = asList(sel.disc)[0]; e = cubeGet(sel.w, asList(sel.metro)[0] || 'REGION', d0 === 'ALL' ? 'ALL' : d0.slice(4), 'yr', i); }
+    return {year: y, e};
+  });
+}
+function leadOcc(sel){
+  const rr = refRows(sel); if (!rr) return null;
+  const pub = rr.filter(r => r.v && r.v[3] != null).sort((a, b) => (b.v[0] || 0) - (a.v[0] || 0));
+  return pub.length ? pub[0] : null;
+}
+function blsSeries(metro, occ){
+  const h = (OEWS_H[metro] || {})[occ];
+  return h ? h.map(([year, emp, ...q]) => ({year, emp, q})).filter(p => p.q[2] != null) : [];
+}
+function openTrend(k){
+  const spec = TRENDS[k]; if (!spec) return;
+  const sel = spec.sel, single = asList(sel.metro).length === 1 && METRO[asList(sel.metro)[0]];
+  const occ = spec.occ ? {occ: spec.occ, name: META.occnames[spec.occ] || spec.occ} : (single && !spec.blsOnly ? leadOcc(sel) : null);
+  const acs = spec.blsOnly ? [] : acsSeries(sel), bls = occ && single ? blsSeries(asList(sel.metro)[0], occ.occ) : [];
+  const ok = acs.filter(p => !p.e.suppressed);
+  hideTip();
+  const years = [...new Set([...acs.map(p => p.year), ...bls.map(p => p.year)])].sort();
+  let body = '';
+  if (!ok.length && !bls.length){
+    body = `<div class="empty">${acs.some(p => p.e.unsupported) ? 'Year-by-year figures for this occupation group are available without demographic filters. Remove the filter to see the trend.' : 'Too few survey responses in any single year to show a trend here. Try a broader selection or a combined metro.'}</div>`;
+  } else body = trendChart(years, acs, bls, occ);
+  const chg = (a, b) => (b / a - 1) * 100, pct = v => (v >= 0 ? '+' : '') + v.toFixed(0) + '%';
+  const facts = [];
+  if (ok.length >= 2){ const a = ok[0], b = ok[ok.length - 1]; facts.push(`<div class="tf"><i class="sw acs"></i><b>${pct(chg(a.e.q[2], b.e.q[2]))}</b><span>ACS median, ${a.year}→${b.year}, after inflation</span></div>`); }
+  if (bls.length >= 2){ const a = bls[0], b = bls[bls.length - 1]; facts.push(`<div class="tf"><i class="sw bls"></i><b>${pct(chg(a.q[2], b.q[2]))}</b><span>BLS median, May ${a.year}→May ${b.year}, not inflation-adjusted</span></div>`); }
+  const thin = ok.some(p => p.e.caution), noAcs = !spec.blsOnly && acs.length && acs.every(p => p.e.unsupported);
+  $('trend-title').textContent = spec.label;
+  $('trend-sub').textContent = [S.w === 'ftyr' || sel.w === 'ftyr' ? 'Full-time' : 'All earners', spec.context].filter(Boolean).join(' · ');
+  $('trend-body').innerHTML = body + (facts.length ? `<div class="tfacts">${facts.join('')}</div>` : '') +
+    `<p class="tnote">${noAcs ? 'The survey line for this occupation group is available without demographic filters; the BLS line is shown on its own. ' : ''}${thin ? 'Single survey years have about a fifth of the pooled sample, so some points carry wide margins (shaded band = middle 50%). ' : 'Shaded band = middle 50% of ACS pay. '}ACS years are survey years in 2024 dollars; BLS values are as published each May.${occ && bls.length ? ` BLS line: ${esc(occ.name)}.` : ''}</p>`;
+  const cols = ['Year', 'Source', 'Responses (n)', 'P25', 'Median', 'P75', 'Median MOE (90%)'];
+  const rows = [...acs.map(p => p.e.suppressed ? [p.year, 'ACS (2024 $)', p.e.unknownN || p.e.unsupported ? '' : p.e.n, '', '', '', ''] : [p.year, 'ACS (2024 $)', p.e.n, Math.round(p.e.q[1]), Math.round(p.e.q[2]), Math.round(p.e.q[3]), Math.round(p.e.moe[2])]),
+    ...bls.map(p => [p.year, 'BLS OEWS May (nominal)', '', p.q[1] ?? '', p.q[2], p.q[3] ?? '', ''])];
+  LAST.trend = {cols, rows, meta: [`# Trend: ${spec.label} (${spec.context || ''})`, '# ACS: survey years of the 2020-2024 5-year PUMS, 2024 dollars. BLS: OEWS May estimates, nominal dollars.'], file: 'trend'};
+  if (OPEN.has('trend')) showTable('trend', true);
+  const dlg = $('trend'); if (!dlg.open) dlg.showModal();
+}
+function trendChart(years, acs, bls, occ){
+  const narrow = innerWidth < 600, W = narrow ? 360 : 640, H = narrow ? 240 : 280, L = narrow ? 44 : 54, R = narrow ? 50 : 70, T = 16, B = 30;
+  const vals = [...acs.filter(p => !p.e.suppressed).flatMap(p => [p.e.q[1], p.e.q[3]]), ...bls.flatMap(p => [p.q[1], p.q[3], p.q[2]].filter(v => v != null))];
+  const step = Math.max(...vals) > 200000 ? 50000 : 25000, top = Math.ceil(Math.max(...vals) * 1.08 / step) * step;
+  const x = y => L + (years.length === 1 ? 0.5 : (years.indexOf(y)) / (years.length - 1)) * (W - L - R), yv = v => T + (1 - v / top) * (H - T - B);
+  let g = '';
+  for (let v = 0; v <= top; v += step) g += `<line class="gl" x1="${L}" x2="${W - R}" y1="${yv(v)}" y2="${yv(v)}"/><text class="ax" x="${L - 8}" y="${yv(v) + 4}" text-anchor="end">${v ? '$' + v / 1000 + 'k' : '$0'}</text>`;
+  for (const y of years) g += `<text class="ax" x="${x(y)}" y="${H - 8}" text-anchor="middle">${narrow ? "'" + String(y).slice(2) : y}</text>`;
+  // ACS band + median line, broken where a year is suppressed
+  const runs = []; let cur = [];
+  for (const p of acs){ if (p.e.suppressed){ if (cur.length) runs.push(cur); cur = []; } else cur.push(p); }
+  if (cur.length) runs.push(cur);
+  for (const r of runs){
+    if (r.length > 1) g += `<path class="band" d="M${r.map(p => `${x(p.year)} ${yv(p.e.q[3])}`).join('L')}L${r.slice().reverse().map(p => `${x(p.year)} ${yv(p.e.q[1])}`).join('L')}Z"/>` +
+      `<path class="ln acs" d="M${r.map(p => `${x(p.year)} ${yv(p.e.q[2])}`).join('L')}"/>`;
+  }
+  for (const p of acs) if (!p.e.suppressed)
+    g += `<circle class="pt acs${p.e.caution ? ' thin' : ''}" cx="${x(p.year)}" cy="${yv(p.e.q[2])}" r="5" data-tip="${estTip('ACS ' + p.year + ' (2024 $)', p.e)}" tabindex="0" aria-label="ACS ${p.year}: median ${money(p.e.q[2])}"/>`;
+  if (bls.length > 1) g += `<path class="ln bls" d="M${bls.map(p => `${x(p.year)} ${yv(p.q[2])}`).join('L')}"/>`;
+  for (const p of bls) g += `<rect class="pt bls" x="${x(p.year) - 4.5}" y="${yv(p.q[2]) - 4.5}" width="9" height="9" rx="1.5" transform="rotate(45 ${x(p.year)} ${yv(p.q[2])})" data-tip="${tipData('BLS May ' + p.year, [['Median', money(p.q[2])], ['Middle 50%', p.q[1] != null && p.q[3] != null ? `${k$(p.q[1])} – ${k$(p.q[3])}` : 'not published'], ['Jobs', p.emp != null ? p.emp.toLocaleString('en-US') : 'not published']])}" tabindex="0" aria-label="BLS May ${p.year}: median ${money(p.q[2])}"/>`;
+  // direct labels at the line ends
+  const lastA = acs.filter(p => !p.e.suppressed).pop(), lastB = bls[bls.length - 1];
+  const la = lastA && yv(lastA.e.q[2]), lb = lastB && yv(lastB.q[2]);
+  const off = la != null && lb != null && Math.abs(la - lb) < 16 ? (la < lb ? [-8, 8] : [8, -8]) : [0, 0];
+  if (lastA) g += `<text class="dl" x="${x(lastA.year) + 10}" y="${la + 4 + off[0]}">${kk(lastA.e.q[2])}</text>`;
+  if (lastB) g += `<text class="dl" x="${x(lastB.year) + 10}" y="${lb + 4 + off[1]}">${kk(lastB.q[2])}</text>`;
+  const legend = `<div class="legend tl">${acs.some(p => !p.e.suppressed) ? '<span><i class="sw acs"></i>ACS median (2024 $)</span><span><i style="background:var(--band-o);opacity:.5"></i>ACS middle 50%</span>' : ''}${bls.length ? `<span><i class="sw bls"></i>BLS median${occ ? ' · ' + esc(occ.name) : ''}</span>` : ''}</div>`;
+  return legend + `<svg class="tchart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Median pay by year">${g}</svg>`;
+}
+document.addEventListener('click', e => {
+  const t = e.target.closest('[data-trend]'); if (!t) return;
+  e.stopPropagation(); openTrend(t.dataset.trend);
+}, true);
+document.addEventListener('keydown', e => { const t = e.target.closest && e.target.closest('li[data-trend]'); if (t && (e.key === 'Enter' || e.key === ' ')){ e.preventDefault(); openTrend(t.dataset.trend); } });
+const TREND_ICON = '<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 17l6-6 4 4 8-8M15 7h6v6"/></svg>';
+function trendBtn(k, label){ return HAS_TREND ? `<button class="trbtn" data-trend="${k}" aria-label="Trend: ${esc(label)}" title="See the trend">${TREND_ICON}</button>` : ''; }
+
 /* ---------- render ---------- */
 let LAST = {};
 function render(){
-  buildFilters(); hideTip(); TIPS = {}; TIPN = 0;
+  buildFilters(); hideTip(); TIPS = {}; TIPN = 0; for (const k in TRENDS) delete TRENDS[k]; TRN = 0;
   const act = activeDims(S), who = S.w === 'ftyr' ? 'Full-time' : 'All earners';
   const selText = `${S.w === 'ftyr' ? 'full-time year-round' : 'all wage earners'}; ${discName(S.disc)}; ${S.metro.map(one).join(' + ')}${act.map(d => '; ' + DIMLABEL[d] + ': ' + S[d].map(v => META.dims[d][v]).join(' + ')).join('')}`;
   const csvMeta = ['# Selection: ' + selText, '# Source: ACS 2020-2024 5-year PUMS, 2024 dollars; MOE = 90% via 80 SDR replicate weights. Link: ' + location.href];
@@ -1032,7 +1172,8 @@ function render(){
   mrows.sort((a, b) => (a[1].suppressed - b[1].suppressed) || (b[1].suppressed ? a[0].miles - b[0].miles : b[1].q[2] - a[1].q[2]));
   $('region-sub').textContent = `${discName(S.disc)} · ${who}${act.length ? ' · ' + act.map(d => dimText(d, S[d])).join(', ') : ''} · tap a metro to drill in`;
   $('map-view').hidden = S.view !== 'map'; $('list-view').hidden = S.view !== 'list';
-  const mr = rowsHTML(mrows.map(([m, est]) => [m.name, est, {sel: S.metro.includes(m.id), click: m.id, mark: m.fit_flag ? ' †' : ''}]), scaleMax(mrows.map(r => r[1])));
+  const mr = rowsHTML(mrows.map(([m, est]) => [m.name, est, {sel: S.metro.includes(m.id), click: m.id, mark: m.fit_flag ? ' †' : '',
+    trend: trendKey({sel: {...S, metro: [m.id]}, label: m.name, context: discName(S.disc)})}]), scaleMax(mrows.map(r => r[1])));
   if (S.view === 'map') renderMap(mrows); else $('metro-rows').innerHTML = mr.h;
   $('metro-gone').textContent = S.view === 'list' ? goneText(mr.gone, mrows.length) : (mr.gone.length === mrows.length ? goneText(mr.gone, mrows.length) : '');
   LAST.metros = {cols: ['Metro', 'Miles from Cincinnati', ...TABLE_COLS.slice(1)], rows: tableRows(mrows.map(([m, est]) => [m.name, est])).map((r, i) => [r[0], Math.round(mrows[i][0].miles), ...r.slice(1)]), meta: csvMeta, file: 'by-metro'};
@@ -1054,7 +1195,7 @@ function render(){
     const mx = scaleMax([e, lead ? {q: [0, 0, lead.v[3], 0, 0]} : null]);
     h = `<div class="hero-top"><div>${kicker}<div class="big">${money(e.q[2])}</div>
         <div class="moe"><span>Median annual pay · ± ${money(e.moe[2])}</span>${e.caution ? THIN : ''}<button class="infobtn" id="paytoggle" aria-expanded="false" aria-controls="paybody">What’s included?</button></div></div>
-        <div class="tools">${toolsHTML('hero')}</div></div>
+        <div class="tools">${HAS_TREND ? `<button class="btn icon" data-trend="${trendKey({sel: S, label: discName(S.disc), context: metroName(S.metro)})}" aria-label="See the trend" title="See the trend">${TREND_ICON}</button>` : ''}${toolsHTML('hero')}</div></div>
       <div class="paybody" id="paybody" hidden>${PAY_HTML}</div>
       ${chips}
       <div class="strip" role="img" aria-label="Wage distribution: 10th percentile ${money(e.q[0])}, median ${money(e.q[2])}, 90th percentile ${money(e.q[4])}">
@@ -1089,7 +1230,8 @@ function render(){
   for (let v = 0; v < n; v++){
     const s2 = {...S};
     if (dim === 'fam') s2.disc = ['fam:' + FAM[v].id]; else s2[dim] = [v];
-    srows.push([valLabel(dim, v), estimate(s2), {sel: dim === 'fam' ? S.disc.includes(s2.disc[0]) : S[dim].includes(v)}]);
+    srows.push([valLabel(dim, v), estimate(s2), {sel: dim === 'fam' ? S.disc.includes(s2.disc[0]) : S[dim].includes(v),
+      trend: trendKey({sel: s2, label: valLabel(dim, v), context: `${discName(s2.disc)} · ${metroName(s2.metro)}`})}]);
   }
   $('split-title').textContent = 'By ' + DIMLABEL[dim].toLowerCase();
   $('split-sub').textContent = `${discName(S.disc)} · ${metroName(S.metro)} · ${who}` + (dim === 'ind' ? ' · employer’s industry' : '');
@@ -1114,7 +1256,8 @@ function render(){
       const [emp, ...q] = r.v;
       const k = tipData(r.name, [['Median', money(q[2])], ['Middle 50%', q[1] != null && q[3] != null ? `${k$(q[1])} – ${k$(q[3])}` : 'not published'],
         ['10th–90th', q[0] != null && q[4] != null ? `${k$(q[0])} – ${k$(q[4])}` : 'not published'], ['Jobs', emp != null ? emp.toLocaleString('en-US') : 'not published']]);
-      b += `<li data-tip="${k}" aria-label="${esc(r.name)}: BLS median ${money(q[2])}"><span class="nm">${esc(r.name)}</span><div class="bar" aria-hidden="true">${marks(q, rmx)}</div><span class="v">${k$(q[2])}${emp != null ? `<small>${sig2(emp)} jobs</small>` : ''}</span></li>`;
+      const tk = HAS_TREND && (OEWS_H[S.metro[0]] || {})[r.occ] ? trendKey({sel: S, occ: r.occ, blsOnly: true, label: r.name, context: M.name}) : '';
+      b += `<li data-tip="${k}"${tk ? ` data-trend="${tk}" class="click" tabindex="0" role="button"` : ''} aria-label="${esc(r.name)}: BLS median ${money(q[2])}"><span class="nm">${esc(r.name)}</span><div class="bar" aria-hidden="true">${marks(q, rmx)}</div><span class="v">${k$(q[2])}${emp != null ? `<small>${sig2(emp)} jobs</small>` : ''}</span></li>`;
     }
     const missing = rr.filter(r => !(r.v && r.v[3] != null)).map(r => r.name);
     $('ref-body').innerHTML = (b ? `<div class="legend" aria-hidden="true"><span><i style="background:var(--ref-o)"></i>10th–90th pct</span><span><i style="background:var(--ref-i)"></i>Middle 50%</span><span><i class="dia ink"></i>BLS median</span></div><ul class="rows ref-row">${b}<li class="axisrow" aria-hidden="true">${axisHTML(rmx)}</li></ul>` : '') +
@@ -1145,6 +1288,20 @@ document.addEventListener('click', e => {
   if (p){ S.metro = [p.dataset.pick]; onChange(); $('hero').scrollIntoView({block: 'start', behavior: 'smooth'}); }
 });
 document.addEventListener('keydown', e => { const p = e.target.closest && e.target.closest('li[data-pick]'); if (p && (e.key === 'Enter' || e.key === ' ')){ e.preventDefault(); p.click(); } });
+
+/* ---------- dialogs: close buttons, backdrop click, tour video ---------- */
+document.addEventListener('click', e => {
+  const c = e.target.closest('[data-close]'); if (c){ c.closest('dialog').close(); return; }
+  if (e.target.tagName === 'DIALOG') e.target.close();   // click on the backdrop
+});
+$('tour').addEventListener('close', () => $('tour-video').pause());
+$('tourlink').addEventListener('click', () => {
+  const v = $('tour-video'), tall = matchMedia('(max-aspect-ratio: 1/1)').matches;
+  const src = tall ? 'demo/salary-explorer-demo-vertical.mp4' : 'demo/salary-explorer-demo.mp4';
+  if (!v.src.endsWith(src)){ v.src = src; v.poster = tall ? 'demo/poster-vertical.jpg' : 'demo/poster.jpg'; }
+  $('tour').classList.toggle('tall', tall);
+  $('tour').showModal(); v.play().catch(() => {});
+});
 
 /* ---------- what pay includes ---------- */
 const PAY_HTML = `<dl class="paydl">

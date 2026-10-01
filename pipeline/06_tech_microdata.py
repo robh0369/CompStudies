@@ -19,7 +19,7 @@ out = {
     'wage': base64.b64encode(t.wage.to_numpy('<i4').tobytes()).decode(),
     'w': base64.b64encode(W.astype('<i2').tobytes()).decode(),
     'cols': {'metro': t.CBSA.map(midx).tolist(), 'fam': t.fam.map(fidx).tolist(),
-             'ftyr': t.ftyr.astype(int).tolist(), **{k: t[k].astype(int).tolist() for k in DIMS}},
+             'ftyr': t.ftyr.astype(int).tolist(), 'yr': t.yr.astype(int).tolist(), **{k: t[k].astype(int).tolist() for k in DIMS}},
 }
 json.dump(out, open(DATA/'web/tech_micro.json', 'w'), separators=(',', ':'))
 # Reference values the page's JS must reproduce (checked in 07_build_page.py's test)
