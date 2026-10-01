@@ -185,6 +185,42 @@ h2{font-size:1.12rem;font-weight:800;margin:0;letter-spacing:-.015em}
 .mapkey .ex{display:inline-flex;align-items:center;gap:6px}
 .mapkey .ex i{display:inline-block;width:12px;height:12px;border-radius:50%}
 
+/* Role search */
+.rs{padding:6px 4px 4px}
+.rs input{width:100%;padding:9px 12px 9px 34px;border:1.5px solid var(--sky);border-radius:9px;background:var(--card) no-repeat 10px center/16px
+  url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%234EA8DE' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='m20 20-3.5-3.5'/%3E%3C/svg%3E");font-size:.9rem}
+.rs input:focus{outline:none;box-shadow:0 0 0 3px var(--wash)}
+.rs-res{padding:0 4px}
+.rs-res:empty{display:none}
+.rs-hit{display:grid;grid-template-columns:1fr;gap:1px;width:100%;text-align:left;border:1px solid var(--rule);background:var(--card);border-radius:9px;padding:7px 10px;margin-top:6px;cursor:pointer}
+.rs-hit:hover{border-color:var(--sky)}
+.rs-hit.top{border-color:var(--gold);background:var(--gold-wash)}
+.rs-name{font-weight:700;font-size:.88rem}
+.rs-hit small{grid-column:1/-1;color:var(--muted);font-size:.74rem}
+.conf{font-size:.64rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+.conf.cS{color:var(--sky-ink)} .rs-hit.top .conf{color:var(--gold-ink)}
+.rs-note{font-size:.76rem;color:var(--muted);margin:8px 2px 2px}
+.matchnote{display:inline-block;font-size:.75rem;font-weight:600;color:#0B2545;background:#F2C14E;border-radius:999px;padding:2px 10px;margin:0 0 8px}
+.infobtn{background:none;border:0;padding:0;color:var(--sky-ink);font-size:.82rem;font-weight:600;cursor:pointer;text-decoration:underline;text-underline-offset:2px}
+.paybody{margin-top:12px;background:var(--rule-2);border:1px solid var(--rule);border-radius:12px;padding:10px 14px}
+.paydl{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;margin:0;font-size:.82rem}
+.paydl dt{font-weight:700;color:#F2C14E;font-size:.7rem;text-transform:uppercase;letter-spacing:.06em;padding-top:2px}
+.paydl dd{margin:0;color:var(--ink-2)}
+@media (max-width:520px){.paydl{grid-template-columns:1fr}.paydl dd{margin-bottom:4px}}
+.levels{margin-top:18px}
+.lv-h{font-size:.7rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px}
+.lv-h span{margin-left:6px;color:#F2C14E;text-transform:none;letter-spacing:0;font-weight:600}
+.lv-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:2px;border-radius:12px;overflow:hidden}
+.lv{background:var(--rule-2);padding:8px 10px;border-top:3px solid var(--band-o)}
+.lv:nth-child(2),.lv:nth-child(3){border-top-color:var(--band-i)}
+.lv span{display:block;font-size:.72rem;font-weight:700;color:var(--ink-2)}
+.lv b{display:block;font-family:var(--display);font-size:1.02rem;font-weight:800;white-space:nowrap}
+.lv small{color:var(--muted);font-size:.68rem}
+.lv.on{background:#F2C14E;color:#0B2545;border-top-color:#0B2545}
+.lv.on span,.lv.on small{color:#0B2545}
+.lv-note{font-size:.76rem;color:var(--muted);margin:8px 0 0}
+@media (max-width:520px){.lv-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
 /* Detail (hero) */
 .hero.card{background:linear-gradient(160deg,#0B2545 0%,#13315C 100%);border-color:#13315C;color:#fff}
 .hero-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
@@ -475,7 +511,7 @@ function estimate(sel, ignoreDim){
 }
 
 /* ---------- state + URL ---------- */
-const DEFAULT = () => ({w:'ftyr', metro:['17140'], disc:['tech'], age:[], sex:[], educ:[], race:[], ind:[], split:'fam', view:'map'});
+const DEFAULT = () => ({w:'ftyr', metro:['17140'], disc:['tech'], age:[], sex:[], educ:[], race:[], ind:[], split:'fam', view:'map', q:''});
 let S = DEFAULT();
 const GEO = JSON.parse(document.getElementById('geo').textContent);
 const validDisc = d => d === 'ALL' || d === 'tech' || (d.startsWith('fam:') && FAM.some(f => 'fam:' + f.id === d)) || (d.startsWith('soc:') && META.soc.some(g => 'soc:' + g.id === d));
@@ -489,6 +525,7 @@ function readHash(){
   const d = list('d').filter(validDisc); if (d.length) s.disc = d;
   for (const k of DIMS) s[k] = [...new Set(list(k).map(Number).filter(v => Number.isInteger(v) && v >= 0 && v < META.dims[k].length))];
   const sp = p.get('split'); if (sp && (DIMS.includes(sp) || sp === 'fam')) s.split = sp;
+  s.q = (p.get('q') || '').slice(0, 80);
   return normalize(s);
 }
 function writeHash(){
@@ -498,6 +535,7 @@ function writeHash(){
   for (const k of DIMS) if (S[k].length) p.set(k, S[k].join(','));
   p.set('split', S.split);
   if (S.view !== 'map') p.set('v', S.view);
+  if (S.q) p.set('q', S.q);
   const h = '#' + p.toString().replace(/%2C/g, ',').replace(/%3A/g, ':');
   if (location.hash !== h) history.replaceState(null, '', h);
 }
@@ -584,17 +622,22 @@ function pickerDefs(){
 function buildPickers(){
   for (const [key, label, opts, where] of pickerDefs()){
     const id = 'ms-' + key, el = document.createElement('div'); el.className = 'ms'; el.id = id;
-    let body = key in {metro: 1, disc: 1} ? '' : `<label class="ms-opt"><input type="checkbox" data-all="1"><span class="ms-box"></span><span>All</span></label>`;
+    let body = key === 'disc' ? `<div class="rs"><input type="search" id="role-q" placeholder="Type any job title…" autocomplete="off" enterkeyhint="search" aria-label="Search a job title" aria-controls="role-res"></div><div class="rs-res" id="role-res" aria-live="polite"></div>`
+      : key === 'metro' ? '' : `<label class="ms-opt"><input type="checkbox" data-all="1"><span class="ms-box"></span><span>All</span></label>`;
     for (const o of opts) body += o.group ? `<div class="ms-group">${esc(o.group)}</div>`
       : `<label class="ms-opt"><input type="checkbox" value="${esc(o.v)}"${o.excl ? ' data-excl="1"' : ''}><span class="ms-box"></span><span>${esc(o.t)}</span>${o.note ? `<small>${o.note}</small>` : ''}</label>`;
     el.innerHTML = `<span class="flabel" id="${id}-l">${label}</span><button class="ms-btn" aria-expanded="false" aria-controls="${id}-p" aria-describedby="${id}-l"><span class="ms-val"></span><span class="ms-n"></span>${ICON.chev}</button>` +
       `<div class="ms-panel" id="${id}-p" role="group" aria-label="${esc(label)}" hidden>${body}</div>`;
     $('pickers-' + where).appendChild(el);
     const btn = el.querySelector('.ms-btn'), panel = el.querySelector('.ms-panel');
-    btn.addEventListener('click', () => { const open = panel.hidden; closePickers(); panel.hidden = !open; btn.setAttribute('aria-expanded', String(open)); });
-    panel.addEventListener('change', e => pick(key, e.target));
+    btn.addEventListener('click', () => { const open = panel.hidden; closePickers(); panel.hidden = !open; btn.setAttribute('aria-expanded', String(open));
+      if (open && key === 'disc' && matchMedia('(pointer: fine)').matches) $('role-q').focus(); });
+    panel.addEventListener('change', e => { if (e.target.type === 'checkbox') pick(key, e.target); });
     PICKERS[key] = {el, btn, panel, opts};
   }
+  $('role-q').addEventListener('input', renderRoleResults);
+  $('role-q').addEventListener('keydown', e => { if (e.key === 'Enter'){ e.preventDefault(); const top = $('role-res').querySelector('[data-suggest]'); if (top) applySuggestion(top.dataset.suggest); } });
+  $('role-res').addEventListener('click', e => { const b = e.target.closest('[data-suggest]'); if (b) applySuggestion(b.dataset.suggest); });
 }
 function closePickers(except){ for (const k in PICKERS) if (k !== except){ PICKERS[k].panel.hidden = true; PICKERS[k].btn.setAttribute('aria-expanded', 'false'); } }
 document.addEventListener('click', e => { if (!e.target.closest('.ms')) closePickers(); });
@@ -608,6 +651,7 @@ function pick(key, input){
   else if (input.dataset.excl || singleMode(key)) cur = [val];
   else { const ex = new Set(PICKERS[key].opts.filter(o => o.excl).map(o => o.v)); cur = cur.filter(x => !ex.has(x)).concat(val); }
   S[key] = cur;
+  if (key === 'disc') S.q = '';
   if (key === 'disc' && isTech(S) && S.split !== 'fam' && !activeDims(S).length) S.split = 'fam';
   if (isDim && !isTech(S) && cur.length){ for (const o of DIMS) if (o !== key) S[o] = []; S.split = key; }
   if (singleMode(key) || input.dataset.excl) closePickers();
@@ -623,6 +667,174 @@ function syncPickers(){
     btn.querySelector('.ms-val').textContent = key === 'metro' ? metroName(cur) : key === 'disc' ? discName(cur) : cur.length ? dimText(key, cur) : 'All';
     btn.querySelector('.ms-n').textContent = cur.length > 1 ? cur.length : '';
   }
+}
+
+/* ---------- role search: free-text job title -> closest Role options ---------- */
+/* Each Role option is described by its label, (for tech families) the BLS occupation titles it covers, and the common job
+   titles below. A query is normalized (abbreviations expanded, level words like "senior" set aside), then scored against every
+   phrase: rare words count more than common ones (engineer, manager), and near-misses (plurals, typos, word stems) earn partial
+   credit. Best option first; nothing is shown when no option clears the floor. */
+const ROLE_ALIASES = {
+  'fam:swdev': ['software engineer', 'software developer', 'developer', 'programmer', 'coder', 'backend engineer', 'backend developer', 'fullstack developer',
+    'fullstack engineer', 'application developer', 'mobile developer', 'ios developer', 'android developer', 'game developer', 'embedded software engineer',
+    'java developer', 'python developer', 'dotnet developer', 'csharp developer', 'javascript developer', 'salesforce developer', 'sdet',
+    'software test engineer', 'quality assurance engineer', 'quality assurance analyst', 'test automation engineer', 'devops engineer', 'software architect'],
+  'fam:data': ['data scientist', 'data analyst', 'data engineer', 'machine learning engineer', 'artificial intelligence engineer', 'business intelligence analyst',
+    'business intelligence developer', 'analytics', 'analytics engineer', 'statistician', 'mathematician', 'database administrator', 'database architect',
+    'data architect', 'database developer', 'operations research analyst', 'quantitative analyst', 'quant', 'prompt engineer', 'research scientist', 'reporting analyst', 'data'],
+  'fam:cyber': ['cybersecurity', 'cyber security', 'security analyst', 'security engineer', 'information security', 'information security analyst',
+    'soc analyst', 'penetration tester', 'pen tester', 'ethical hacker', 'threat analyst', 'grc analyst', 'security architect', 'incident responder', 'cyber'],
+  'fam:netsys': ['network engineer', 'network administrator', 'systems administrator', 'system administrator', 'cloud engineer', 'cloud architect',
+    'devops', 'site reliability engineer', 'infrastructure engineer', 'systems engineer', 'computer systems analyst', 'systems analyst',
+    'solutions architect', 'network architect', 'platform engineer', 'erp analyst', 'business systems analyst', 'linux administrator', 'it specialist'],
+  'fam:support': ['help desk', 'helpdesk technician', 'it support', 'technical support', 'desktop support', 'service desk', 'it technician',
+    'computer technician', 'support specialist', 'tech support', 'field technician', 'information technology support', 'computer support specialist'],
+  'fam:itmgmt': ['it manager', 'it director', 'information technology manager', 'chief information officer', 'chief technology officer',
+    'engineering manager', 'software engineering manager', 'director of engineering', 'vice president engineering', 'head of it',
+    'technology manager', 'infrastructure manager', 'development manager', 'it project manager'],
+  'fam:webux': ['web developer', 'frontend developer', 'frontend engineer', 'user interface developer', 'web designer', 'user experience designer',
+    'user interface designer', 'product designer', 'interaction designer', 'digital designer', 'wordpress developer', 'user experience researcher', 'webmaster'],
+  'soc:11': ['manager', 'general manager', 'operations manager', 'director', 'executive', 'chief executive', 'chief operating officer', 'chief financial officer',
+    'vice president', 'product manager', 'marketing manager', 'sales manager', 'human resources manager', 'financial manager', 'finance manager',
+    'construction manager', 'plant manager', 'program director', 'medical and health services manager', 'education administrator'],
+  'soc:13': ['accountant', 'auditor', 'financial analyst', 'business analyst', 'project manager', 'program manager', 'management analyst', 'consultant',
+    'human resources specialist', 'recruiter', 'buyer', 'purchasing agent', 'compliance officer', 'loan officer', 'underwriter', 'budget analyst',
+    'tax preparer', 'logistician', 'market research analyst', 'marketing specialist', 'claims adjuster', 'training specialist', 'event planner', 'financial advisor', 'scrum master'],
+  'soc:15': ['computer', 'information technology', 'tech', 'actuary', 'computer scientist'],
+  'soc:17': ['engineer', 'mechanical engineer', 'electrical engineer', 'civil engineer', 'chemical engineer', 'industrial engineer', 'manufacturing engineer',
+    'process engineer', 'quality engineer', 'aerospace engineer', 'biomedical engineer', 'environmental engineer', 'architect', 'drafter', 'surveyor',
+    'engineering technician', 'cad designer', 'controls engineer', 'design engineer'],
+  'soc:19': ['scientist', 'chemist', 'biologist', 'lab technician', 'laboratory technician', 'economist', 'psychologist', 'epidemiologist',
+    'environmental scientist', 'physicist', 'geologist', 'urban planner', 'research associate', 'microbiologist', 'food scientist'],
+  'soc:21': ['social worker', 'counselor', 'mental health counselor', 'case manager', 'clergy', 'pastor', 'community health worker', 'probation officer',
+    'substance abuse counselor', 'school counselor', 'youth worker'],
+  'soc:23': ['lawyer', 'attorney', 'paralegal', 'legal assistant', 'judge', 'counsel', 'legal', 'law clerk'],
+  'soc:25': ['teacher', 'professor', 'instructor', 'tutor', 'librarian', 'teaching assistant', 'lecturer', 'faculty', 'preschool teacher',
+    'special education teacher', 'substitute teacher', 'educator'],
+  'soc:27': ['graphic designer', 'designer', 'writer', 'editor', 'journalist', 'reporter', 'photographer', 'artist', 'musician', 'public relations specialist',
+    'producer', 'video editor', 'technical writer', 'content writer', 'copywriter', 'interpreter', 'translator', 'actor', 'coach', 'animator', 'social media'],
+  'soc:29': ['nurse', 'nursing', 'registered nurse', 'physician', 'doctor', 'pharmacist', 'nurse practitioner', 'physician assistant', 'dentist', 'physical therapist',
+    'occupational therapist', 'radiologic technologist', 'respiratory therapist', 'dental hygienist', 'licensed practical nurse', 'paramedic',
+    'emergency medical technician', 'surgeon', 'veterinarian', 'optometrist', 'dietitian', 'speech pathologist', 'medical technologist', 'sonographer',
+    'pharmacy technician', 'anesthetist'],
+  'soc:31': ['nursing assistant', 'medical assistant', 'home health aide', 'dental assistant', 'phlebotomist', 'orderly', 'physical therapist assistant',
+    'massage therapist', 'caregiver', 'patient care technician'],
+  'soc:33': ['police officer', 'firefighter', 'security guard', 'sheriff', 'corrections officer', 'detective', 'lifeguard', 'police'],
+  'soc:35': ['cook', 'chef', 'server', 'waiter', 'waitress', 'bartender', 'dishwasher', 'barista', 'food service', 'fast food', 'restaurant', 'line cook'],
+  'soc:37': ['janitor', 'custodian', 'housekeeper', 'landscaper', 'groundskeeper', 'cleaner', 'maid', 'pest control'],
+  'soc:39': ['hairdresser', 'hair stylist', 'barber', 'cosmetologist', 'childcare worker', 'nanny', 'fitness trainer', 'personal trainer', 'recreation worker',
+    'personal care aide', 'manicurist'],
+  'soc:41': ['sales', 'salesperson', 'sales representative', 'account executive', 'retail', 'cashier', 'sales associate', 'real estate agent', 'insurance agent',
+    'sales engineer', 'business development', 'store manager', 'account manager', 'realtor'],
+  'soc:43': ['administrative assistant', 'secretary', 'receptionist', 'office manager', 'customer service representative', 'customer service', 'data entry',
+    'bookkeeper', 'clerk', 'bank teller', 'dispatcher', 'payroll', 'executive assistant', 'mail carrier', 'call center', 'office assistant'],
+  'soc:45': ['farmworker', 'farm worker', 'agricultural worker', 'logger', 'fisher'],
+  'soc:47': ['electrician', 'plumber', 'carpenter', 'construction worker', 'construction laborer', 'roofer', 'painter', 'pipefitter', 'ironworker',
+    'heavy equipment operator', 'mason', 'drywall installer'],
+  'soc:49': ['mechanic', 'hvac technician', 'maintenance technician', 'auto mechanic', 'diesel mechanic', 'line installer', 'repair technician',
+    'maintenance worker', 'aircraft mechanic', 'industrial mechanic', 'technician'],
+  'soc:51': ['machinist', 'welder', 'assembler', 'production worker', 'factory worker', 'manufacturing', 'machine operator', 'inspector', 'quality inspector',
+    'cnc operator', 'packaging', 'baker', 'butcher', 'printing press operator'],
+  'soc:53': ['truck driver', 'driver', 'delivery driver', 'forklift operator', 'warehouse worker', 'material handler', 'pilot', 'flight attendant',
+    'bus driver', 'freight', 'stocker', 'mover', 'warehouse associate'],
+};
+const ABBR = {swe: 'software engineer', sde: 'software engineer', dev: 'developer', devs: 'developer', eng: 'engineer', engr: 'engineer', mgr: 'manager',
+  sre: 'site reliability engineer', qa: 'quality assurance', ml: 'machine learning', ai: 'artificial intelligence', bi: 'business intelligence',
+  dba: 'database administrator', ux: 'user experience', ui: 'user interface', it: 'information technology', infosec: 'information security',
+  rn: 'registered nurse', lpn: 'licensed practical nurse', np: 'nurse practitioner', pa: 'physician assistant', cna: 'nursing assistant', cpa: 'accountant',
+  hr: 'human resources', vp: 'vice president', cto: 'chief technology officer', cio: 'chief information officer', ceo: 'chief executive',
+  cfo: 'chief financial officer', coo: 'chief operating officer', pm: 'product manager', sysadmin: 'systems administrator', admin: 'administrator',
+  emt: 'emergency medical technician', cdl: 'truck driver', pt: 'physical therapist', ot: 'occupational therapist',
+  js: 'javascript', ops: 'operations', mech: 'mechanical', elec: 'electrical', acct: 'accountant', ba: 'business analyst', ds: 'data scientist', de: 'data engineer'};
+const JOIN = [[/\bfront[\s-]?end\b/g, 'frontend'], [/\bback[\s-]?end\b/g, 'backend'], [/\bfull[\s-]?stack\b/g, 'fullstack'], [/\bhelp[\s-]?desk\b/g, 'helpdesk'],
+  [/\bdev[\s-]?ops\b/g, 'devops'], [/\bcyber[\s-]?security\b/g, 'cybersecurity'], [/\be[\s-]?commerce\b/g, 'ecommerce']];
+const LEVEL_WORDS = {intern: 'entry', internship: 'entry', trainee: 'entry', apprentice: 'entry', entry: 'entry', junior: 'entry', jr: 'entry', grad: 'entry', i: 'entry',
+  mid: 'mid', midlevel: 'mid', intermediate: 'mid', ii: 'mid', senior: 'senior', sr: 'senior', iii: 'senior', experienced: 'senior',
+  lead: 'lead', staff: 'lead', principal: 'lead', iv: 'lead', distinguished: 'lead'};
+const STOP = new Set(['of', 'the', 'a', 'an', 'and', 'for', 'in', 'at', 'to', 'with', 'my', 'im', 'level', 'role', 'job', 'position', 'title']);
+const stem = t => t.length > 4 && t.endsWith('ies') ? t.slice(0, -3) + 'y' : t.length > 3 && t.endsWith('s') && !t.endsWith('ss') ? t.slice(0, -1) : t;
+function roleTokens(text, levels){
+  let s = ' ' + String(text).toLowerCase().replace(/&/g, ' and ').replace(/[^a-z0-9#.+\s/-]/g, ' ').replace(/[/,]/g, ' ') + ' ';
+  s = s.replace(/\bentry[\s-]level\b/g, 'entry').replace(/\bmid[\s-]level\b/g, 'mid').replace(/\bnew grad(uate)?\b/g, 'grad');
+  for (const [re, to] of JOIN) s = s.replace(re, to);
+  const out = [];
+  s = s.replace(/\.net\b/g, ' dotnet ').replace(/c#/g, ' csharp ').replace(/[.#+]/g, ' ');
+  for (const t of s.split(/[\s-]+/).filter(Boolean)){
+    if (levels && LEVEL_WORDS[t]){ levels.push(LEVEL_WORDS[t]); continue; }
+    if (STOP.has(t)) continue;
+    const ex = ABBR[t]; if (ex) out.push(...ex.split(' ')); else if (t) out.push(t);
+  }
+  return out.map(stem);
+}
+let ROLE_INDEX = null;
+function roleIndex(){
+  if (ROLE_INDEX) return ROLE_INDEX;
+  const opts = [...FAM.map(f => 'fam:' + f.id), ...META.soc.map(g => 'soc:' + g.id)].map(v => {
+    const phrases = [discOne(v), ...(ROLE_ALIASES[v] || [])];
+    if (v.startsWith('fam:')) phrases.push(...FAM.find(f => 'fam:' + f.id === v).oews.map(c => META.occnames[c]).filter(Boolean));
+    return {v, phrases: phrases.map(p => ({text: p, toks: [...new Set(roleTokens(p))]})).filter(p => p.toks.length)};
+  });
+  const df = {};
+  for (const o of opts) for (const t of new Set(o.phrases.flatMap(p => p.toks))) df[t] = (df[t] || 0) + 1;
+  const N = opts.length, idf = t => Math.log(1 + N / (df[t] || 1));
+  return ROLE_INDEX = {opts, idf, vocab: Object.keys(df)};
+}
+function lev(a, b){
+  if (Math.abs(a.length - b.length) > 2) return 3;
+  let prev = Array.from({length: b.length + 1}, (_, j) => j);
+  for (let i = 1; i <= a.length; i++){
+    const cur = [i];
+    for (let j = 1; j <= b.length; j++) cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+    prev = cur;
+  }
+  return prev[b.length];
+}
+function tokSim(a, b){
+  if (a === b) return 1;
+  let p = 0; while (p < a.length && p < b.length && a[p] === b[p]) p++;
+  if (p >= Math.max(4, Math.ceil(0.6 * Math.min(a.length, b.length)))) return 0.8;   // stems: analyst/analytics, nurse/nursing
+  const m = Math.min(a.length, b.length);
+  if (m >= 5 && lev(a, b) <= (m >= 8 ? 2 : 1)) return 0.75;                          // typos: enginer, devloper
+  return 0;
+}
+/* -> {q, level, hits:[{v, score, phrase, conf}]} */
+function matchRoles(query){
+  const levels = [], q = roleTokens(query, levels), {opts, idf} = roleIndex();
+  const level = levels[levels.length - 1] || null;
+  if (!q.length) return {q, level, hits: []};
+  const qw = q.reduce((a, t) => a + idf(t), 0), qs = q.join(' ');
+  const hits = [];
+  for (const o of opts){
+    let best = {score: 0};
+    for (const p of o.phrases){
+      let m = 0, pw = 0, qm = 0;
+      for (const t of p.toks){ pw += idf(t); m += idf(t) * Math.max(...q.map(u => tokSim(t, u))); }
+      for (const u of q) qm += idf(u) * Math.max(...p.toks.map(t => tokSim(t, u)));
+      const score = p.toks.join(' ') === qs ? 1 : 0.5 * m / pw + 0.5 * qm / qw;
+      if (score > best.score) best = {score, phrase: p.text};
+    }
+    if (best.score >= 0.3) hits.push({v: o.v, ...best});
+  }
+  hits.sort((a, b) => b.score - a.score);
+  for (const h of hits) h.conf = h.score >= 0.85 ? 'Strong match' : h.score >= 0.55 ? 'Close fit' : 'Possible fit';
+  return {q, level, hits: hits.slice(0, 3)};
+}
+const LEVEL_NAME = {entry: 'Entry', mid: 'Mid', senior: 'Senior', lead: 'Lead / principal'};
+function renderRoleResults(){
+  const box = $('role-res'), text = $('role-q').value.trim();
+  if (!text){ box.innerHTML = ''; return; }
+  const r = matchRoles(text);
+  box.innerHTML = r.hits.length
+    ? r.hits.map((h, i) => `<button class="rs-hit${i ? '' : ' top'}" data-suggest="${h.v}" data-score="${h.score.toFixed(2)}"><span class="rs-name">${esc(discOne(h.v))}</span>` +
+        `<span class="conf c${h.conf[0]}">${i ? h.conf : 'Best fit · ' + h.conf.toLowerCase()}</span><small>matches “${esc(h.phrase)}”</small></button>`).join('') +
+      (r.level ? `<p class="rs-note">“${esc(LEVEL_NAME[r.level])}” isn’t a survey field — the detail card shows where that level usually falls.</p>` : '')
+    : `<p class="rs-note">No close match${r.level && !r.q.length ? ' — add a job title, not just a level' : ''}. Try a simpler title like “developer”, “nurse” or “accountant”, or pick from the list below.</p>`;
+}
+function applySuggestion(v){
+  S.disc = [v]; S.q = $('role-q').value.trim();
+  if (isTech(S) && !activeDims(S).length) S.split = 'fam';
+  closePickers(); onChange();
+  $('hero').scrollIntoView({block: 'start', behavior: 'smooth'});
 }
 
 /* ---------- filters UI ---------- */
@@ -827,6 +1039,8 @@ function render(){
 
   /* detail */
   const e = estimate(S), refs = S.disc.length === 1 && S.disc[0] !== 'tech' ? refRows(S) : null, lead = refs && refs.find(r => r.v && r.v[3] != null);
+  const qm = S.q ? matchRoles(S.q) : null, lvl = qm && qm.level;
+  const matchNote = S.q ? `<p class="matchnote">Closest fit for “${esc(S.q)}”${qm.hits[0] && qm.hits[0].v === S.disc[0] ? ` · ${qm.hits[0].conf.toLowerCase()}` : ''}</p>` : '';
   const kicker = `<p class="kicker"><b>${S.metro.length > 1 ? 'Pooled selection' : 'Selected'}</b>${esc(discName(S.disc))} · ${esc(metroName(S.metro))}${fit ? ' †' : ''}</p>`;
   const chipX = (k, v, t) => `<span class="chip">${esc(t)}<button data-unpick="${k}" data-val="${esc(v)}" aria-label="Remove ${esc(t)}">×</button></span>`;
   const chips = `<div class="chips"><span class="chip fixed">${who}</span>` +
@@ -839,8 +1053,9 @@ function render(){
   } else {
     const mx = scaleMax([e, lead ? {q: [0, 0, lead.v[3], 0, 0]} : null]);
     h = `<div class="hero-top"><div>${kicker}<div class="big">${money(e.q[2])}</div>
-        <div class="moe"><span>Median salary · ± ${money(e.moe[2])}</span>${e.caution ? THIN : ''}</div></div>
+        <div class="moe"><span>Median annual pay · ± ${money(e.moe[2])}</span>${e.caution ? THIN : ''}<button class="infobtn" id="paytoggle" aria-expanded="false" aria-controls="paybody">What’s included?</button></div></div>
         <div class="tools">${toolsHTML('hero')}</div></div>
+      <div class="paybody" id="paybody" hidden>${PAY_HTML}</div>
       ${chips}
       <div class="strip" role="img" aria-label="Wage distribution: 10th percentile ${money(e.q[0])}, median ${money(e.q[2])}, 90th percentile ${money(e.q[4])}">
         ${marks(e.q, mx)}${lead ? `<div class="s ref" style="left:${pc(lead.v[3], mx)}" title="BLS median: ${esc(lead.name)}"></div>` : ''}
@@ -851,10 +1066,21 @@ function render(){
         <div class="tile"><div class="l">Sample</div><div class="v">${e.n.toLocaleString('en-US')}<small>responses · ~${sig2(e.pop)} workers</small></div></div>
         ${lead ? `<div class="tile" title="${esc(lead.name)}"><div class="l"><i style="display:inline-block;width:8px;height:8px;border-radius:2px;background:var(--ref);transform:rotate(45deg)"></i>BLS median</div><div class="v">${kk(lead.v[3])}<small>employer-reported</small></div></div>` : ''}
       </div>
+      <div class="levels">
+        <div class="lv-h">Typical pay by level <span>rule of thumb</span></div>
+        <div class="lv-grid">
+          <div class="lv${lvl === 'entry' ? ' on' : ''}"><span>Entry</span><b>${kk(e.q[0])}–${kk(e.q[1])}</b><small>10th–25th pct</small></div>
+          <div class="lv${lvl === 'mid' ? ' on' : ''}"><span>Mid</span><b>${kk(e.q[2])}</b><small>around the median</small></div>
+          <div class="lv${lvl === 'senior' ? ' on' : ''}"><span>Senior</span><b>${kk(e.q[3])}</b><small>≈75th pct</small></div>
+          <div class="lv${lvl === 'lead' ? ' on' : ''}"><span>Lead / principal</span><b>${kk(e.q[4])}+</b><small>≈90th pct</small></div>
+        </div>
+        <p class="lv-note">${lvl ? `You searched for a ${LEVEL_NAME[lvl].toLowerCase()} title, highlighted above. ` : ''}The survey doesn’t record job level, so these are percentile stand-ins. For an experience-based view, <button class="infobtn" data-split-go="age">see pay by age</button>.</p>
+      </div>
       ${fit ? `<p class="note">† Survey areas only approximate this metro’s boundary (${Math.round(METRO[S.metro[0]].coverage * 100)}% of residents covered).</p>` : ''}
       <div class="tablewrap" id="tbl-hero"></div>`;
   }
-  $('hero').innerHTML = h;
+  $('hero').innerHTML = matchNote ? h.replace('<p class="kicker">', matchNote + '<p class="kicker">') : h;
+  if ($('role-q') && document.activeElement !== $('role-q')) $('role-q').value = S.q;
   LAST.hero = {cols: TABLE_COLS, rows: tableRows([[`${discName(S.disc)}, ${metroName(S.metro)}`, e]]), meta: csvMeta, file: 'selection'};
 
   /* split */
@@ -910,12 +1136,22 @@ document.addEventListener('click', e => {
   const v = e.target.closest('[data-view]'); if (v){ showTable(v.dataset.view, !OPEN.has(v.dataset.view)); return; }
   const c = e.target.closest('[data-csv]');
   if (c){ const t = LAST[c.dataset.csv]; if (t) saveFile(`salary-explorer-${t.file}.csv`, t.meta.join('\n') + '\n' + csv(t.cols, t.rows)); return; }
+  if (e.target.closest('#paytoggle')){ disclose('paytoggle', 'paybody', $('paybody').hidden); return; }
+  const g = e.target.closest('[data-split-go]');
+  if (g){ S.split = g.dataset.splitGo; onChange(); $('sec-split').scrollIntoView({block: 'start', behavior: 'smooth'}); return; }
   const u = e.target.closest('[data-unpick]');
   if (u){ const k = u.dataset.unpick, val = DIMS.includes(k) ? +u.dataset.val : u.dataset.val; S[k] = S[k].filter(x => x !== val); onChange(); return; }
   const p = e.target.closest('[data-pick]');
   if (p){ S.metro = [p.dataset.pick]; onChange(); $('hero').scrollIntoView({block: 'start', behavior: 'smooth'}); }
 });
 document.addEventListener('keydown', e => { const p = e.target.closest && e.target.closest('li[data-pick]'); if (p && (e.key === 'Enter' || e.key === ' ')){ e.preventDefault(); p.click(); } });
+
+/* ---------- what pay includes ---------- */
+const PAY_HTML = `<dl class="paydl">
+  <dt>Included</dt><dd>Wages, salary, commissions, bonuses and tips from all jobs over the past 12 months, before taxes, as people report them to the Census Bureau.</dd>
+  <dt>Not included</dt><dd>Stock and equity grants (not asked about directly, so mostly missing), benefits, retirement contributions and self-employment income.</dd>
+  <dt>BLS (gold)</dt><dd>Employer-reported base pay, including commissions and production bonuses. Excludes overtime, annual or other non-production bonuses, and equity.</dd>
+</dl>`;
 
 /* ---------- methodology ---------- */
 function methodology(){
@@ -929,6 +1165,9 @@ function methodology(){
     <div class="mtools">${toolsHTML('fit')}</div></div>
   <div><h3>Multi-select</h3><p>Tech roles are computed live from survey records, so several metros, families or groups pool into one estimate. Other occupations use precomputed tables: one metro and one demographic value at a time.</p></div>
   <div><h3>Statistics</h3><p>Weighted percentiles; 90% margins of error from 80 replicate weights. Hidden under ${r.min_n} responses; “Low sample” under ${r.caution_n} or when the margin exceeds ${r.caution_rel}% of the median.</p></div>
+  <div><h3>What pay includes</h3><p>Cash pay: wages, salary, commissions, bonuses and tips. Not equity, benefits or retirement contributions. BLS rates are base pay plus commissions and production bonuses.</p></div>
+  <div><h3>Seniority</h3><p>Neither survey records job level. The level guide maps entry ≈ 10th–25th percentile, mid ≈ median, senior ≈ 75th and lead ≈ 90th, a common rule of thumb; pay by age is a data-based proxy for experience.</p></div>
+  <div><h3>Role search</h3><p>Free-text titles are matched to the closest Role on this page using a built-in list of common job titles, abbreviations and BLS occupation names. It runs in your browser; nothing is sent anywhere.</p></div>
   <div><h3>ACS vs. BLS</h3><p>ACS is self-reported pay from past years; BLS is current employer pay. Expect BLS medians to run higher.</p></div>
   <div><h3>Tech families</h3><ul>${fams}</ul></div>
   </div><div class="tablewrap" id="tbl-fit"></div>`;

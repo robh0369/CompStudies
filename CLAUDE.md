@@ -19,7 +19,8 @@ May 2025 as a market reference. Focus: seven tech-role families. Owner: Rob (rob
    If your network allows it, `curl -sI` it and confirm 200. Then give Rob this checklist to try on his phone:
    tap a metro on the map → detail card updates; pick 2+ metros or tech families in the filters → one pooled figure;
    "Share view" → open the link in a new tab → same view restores; Map/List toggle switches; the table icon opens
-   data; the download icon saves a CSV; headings render in Plus Jakarta Sans, body in Inter.
+   data; the download icon saves a CSV; Role → type "senior backend engineer" → Enter picks Software development and
+   highlights Senior in the level guide; "What's included?" explains pay; headings render in Plus Jakarta Sans, body in Inter.
 
 ## Layout
 ```
@@ -51,6 +52,14 @@ the session's network settings must allow those hosts). `pip install -r requirem
 - Non-tech disciplines use a precomputed cube: one metro, one demographic value (enforced in `normalize()`).
   Tech families compute live from microdata, so every filter is multi-select and selections pool into one estimate.
 - 2024 dollars via ADJINC. Universe: COW 1–5, age 16+, WAGP>0. Full-time year-round = WKHP≥35 and WKWN≥50.
+
+## Role search, levels, pay definition
+- Role search (`matchRoles` in the template) is a local fuzzy matcher over each Role's label, its BLS occupation titles and
+  `ROLE_ALIASES` (common job titles). Add titles there when a search misses; level words (senior, jr, staff, II…) are
+  stripped and drive the level guide highlight.
+- Level guide is a rule of thumb (entry ≈ P10–P25, mid ≈ median, senior ≈ P75, lead ≈ P90); neither survey records level.
+- Pay = ACS WAGP: wages, salary, commissions, bonuses, tips (all jobs, past 12 months). No equity, benefits or retirement.
+  BLS OEWS = base pay incl. commissions/production bonuses; excludes overtime, non-production bonuses, equity.
 
 ## Data-access gotchas
 - download.bls.gov returns 403 to anonymous agents; send a User-Agent containing a contact email.
