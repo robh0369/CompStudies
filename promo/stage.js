@@ -4,7 +4,11 @@
 // Two layouts share the captions and timing: 16:9 (desktop page in a browser window) and 9:16 (?layout=vertical,
 // the page's phone layout in a phone frame, with taps instead of a pointer).
 // Scene cuts reuse the TaskList promo's beat-matched cuts for the same music track (~116 BPM, 8-beat phrases).
-const CUTS = [0, 4.06, 10.81, 16.35, 23.72, 28.37, 32.0, 36.65, 40.53, 45];
+// The trend scene (14.41-17.5) was made room for by moving the Explore, Benchmark and Compare cuts to nearby onsets
+// (9.75, 14.41, 17.5); scene timings below are written on the original cuts and remapped by retime().
+const CUTS = [0, 4.06, 9.75, 14.41, 17.5, 23.72, 28.37, 32.0, 36.65, 40.53, 45], END = CUTS[CUTS.length - 2];
+const REMAP = [[4.06, 10.81, 4.06, 9.75], [10.81, 16.35, 9.75, 14.41], [16.35, 23.72, 17.5, 23.72]];   // old scene -> new
+const R = t => { for (const [a, b, c, d] of REMAP) if (t >= a && t < b) return +(c + (t - a) * (d - c) / (b - a)).toFixed(3); return t; };
 const V = new URLSearchParams(location.search).get('layout') === 'vertical';
 if (V) document.body.classList.add('vertical');
 
@@ -27,11 +31,12 @@ const CAPS = [
   // [from, to, eyebrow, title, sub]
   [CUTS[1], CUTS[2], '01 · Explore', 'Look up <em>any role</em>', 'Type a title in plain words. The explorer suggests the closest match.'],
   [CUTS[2], CUTS[3], '02 · Benchmark', 'See the <em>full range</em> of pay', 'Median, margin of error and percentiles. Senior roles sit near the 75th.'],
-  [CUTS[3], CUTS[4], '03 · Compare', 'Compare <em>markets</em> on the map', '24 metros shaded by median pay. Tap a city to explore it.'],
-  [CUTS[4], CUTS[5], '04 · Validate', 'Check against <em>employer</em> data', 'BLS May 2025 rates sit alongside the survey, in gold.'],
-  [CUTS[5], CUTS[6], '05 · Combine', 'Pool <em>markets</em> and roles', 'Select several metros or role families for one combined view.'],
-  [CUTS[6], CUTS[7], '06 · Segment', 'Slice by <em>experience</em> and more', 'Age, education, industry, gender, race and ethnicity.'],
-  [CUTS[7], CUTS[8], '07 · Share', 'Save, share or <em>export</em>', 'A link reopens your exact view. Every chart exports to CSV.'],
+  [CUTS[3], CUTS[4], '03 · Trend', 'See how pay <em>has moved</em>', 'Each survey year in today’s dollars, beside BLS figures by year.'],
+  [CUTS[4], CUTS[5], '04 · Compare', 'Compare <em>markets</em> on the map', '24 metros shaded by median pay. Tap a city to explore it.'],
+  [CUTS[5], CUTS[6], '05 · Validate', 'Check against <em>employer</em> data', 'BLS May 2025 rates sit alongside the survey, in gold.'],
+  [CUTS[6], CUTS[7], '06 · Combine', 'Pool <em>markets</em> and roles', 'Select several metros or role families for one combined view.'],
+  [CUTS[7], CUTS[8], '07 · Segment', 'Slice by <em>experience</em> and more', 'Age, education, industry, gender, race and ethnicity.'],
+  [CUTS[8], CUTS[9], '08 · Share', 'Save, share or <em>export</em>', 'A link reopens your exact view. Every chart exports to CSV.'],
 ];
 const Q = 'Senior software engineer';
 const S0 = {metro: ['17140'], disc: ['tech'], split: 'fam'};
@@ -75,6 +80,22 @@ const VT = {   // 9:16, phone layout: filters live in a collapsible card, so tap
     [39.0, [760, 1000]], [39.45, '#sec-region [data-csv="metros"]', true], [40.6, '#sec-region [data-csv="metros"]'],
   ],
 };
+// Old-cut times -> new timeline, then the trend scene (written on the new timeline): open the trend from the detail card.
+function retime(T){
+  const pair = ([a, b, ...x]) => [R(a), R(b), ...x];
+  T.STATES = T.STATES.map(([a, x]) => [R(a), x]); T.FILTERS = T.FILTERS.map(pair); T.ROLE = T.ROLE.map(R); T.TYPE = T.TYPE.map(R);
+  T.METRO = T.METRO.map(R); T.SCROLLS = T.SCROLLS.map(pair); T.TIPS = T.TIPS.map(pair); T.TOASTS = T.TOASTS.map(pair);
+  T.CURSOR = T.CURSOR.map(([a, ...x]) => [R(a), ...x]);
+  if (T.ZOOM) for (const k of ['inA', 'inB', 'panA', 'panB', 'outA', 'outB']) T.ZOOM[k] = R(T.ZOOM[k]);
+  return T;
+}
+const TB = '#hero .tools [data-trend]';
+retime(H); H.TREND = [15.0, CUTS[4]];
+H.CURSOR.push([13.95, [1650, 760]], [14.6, TB], [14.9, TB, true], [15.7, [1330, 590]], [17.2, [1350, 600]]);
+retime(VT); VT.TREND = [15.05, CUTS[4]];
+VT.SCROLLS.push([14.45, 14.8, '#hero']);
+VT.CURSOR.push([14.2, [760, 1500]], [14.7, TB], [14.95, TB, true], [15.6, [780, 1640]], [17.2, [780, 1640]]);
+for (const T of [H, VT]){ T.SCROLLS.sort((a, b) => a[0] - b[0]); T.CURSOR.sort((a, b) => a[0] - b[0]); }
 const ST = V ? VT : H;
 
 // ---------------------------------------------------------------------------
@@ -110,6 +131,8 @@ window.ready = new Promise(res => {
       filters(open){ const f = document.getElementById('filters'); f.classList.toggle('open', open); document.getElementById('ftoggle').setAttribute('aria-expanded', String(open)); },
       query(text){ const i = document.getElementById('role-q'); if (i.value !== text){ i.value = text; renderRoleResults(); } },
       tip(sel){ const el = sel && document.querySelector(sel); el ? showTip(el) : hideTip(); },
+      trend(open){ const d = document.getElementById('trend');
+        if (open){ const b = document.querySelector('${TB}'); if (b && !d.open){ openTrend(b.dataset.trend); document.activeElement.blur(); } } else if (d.open) d.close(); },
       toast(text){ const el = document.getElementById('toast'); el.textContent = text || ''; el.classList.toggle('show', !!text); },
     };`;
     d.body.appendChild(sc);
@@ -121,7 +144,7 @@ window.ready = new Promise(res => {
 
 // ---------------------------------------------------------------------------
 // Per-frame application
-let lastKey = '', lastPanels = '', lastQuery = null, lastTip = '', lastToast = '';
+let lastKey = '', lastPanels = '', lastQuery = null, lastTip = '', lastToast = '', lastTrend = false;
 const at = (list, t) => { let v = list[0][1]; for (const [s, x] of list) if (t >= s) v = x; return v; };
 const inAny = (list, t) => list.some(([a, b]) => t >= a && t < b);
 function appTop(sel){ const el = AW.document.querySelector(sel); return el ? el.getBoundingClientRect().top + AW.scrollY - 14 : 0; }
@@ -163,6 +186,8 @@ function applyApp(t){
   if (tip !== lastTip || tip){ A.tip(tip); lastTip = tip; }
   const toast = (ST.TOASTS.find(([a, b]) => t >= a && t < b) || [])[2] || '';
   if (toast !== lastToast){ A.toast(toast); lastToast = toast; }
+  const tr = t >= ST.TREND[0] && t < ST.TREND[1];
+  if (tr !== lastTrend){ A.trend(tr); lastTrend = tr; }
 }
 function applyCursor(t){
   const c = $('#cursor'), C = ST.CURSOR;
@@ -171,7 +196,7 @@ function applyCursor(t){
   const prev = C[Math.max(0, i - 1)], next = C[Math.min(i, C.length - 1)];
   const p0 = stagePoint(prev[1]), p1 = stagePoint(next[1]);
   const p = i === 0 || i === C.length ? 0 : prog(t, prev[0], next[0]);
-  const vis = win01(t, CUTS[1] + 0.2, CUTS[8], 0.4, 0.4);
+  const vis = win01(t, CUTS[1] + 0.2, END, 0.4, 0.4);
   c.style.transform = `translate(${lerp(p0[0], p1[0], p)}px, ${lerp(p0[1], p1[1], p)}px)`;
   c.style.opacity = vis;
   const click = C.filter(w => w[2] && t >= w[0] && t < w[0] + 0.45).pop();
@@ -186,7 +211,7 @@ window.renderAt = function(t){
   const ti = win01(t, 0, CUTS[1] + 0.1, 0.6, 0.55);
   $('#title').style.opacity = ti; $('#title').style.transform = `translateY(${(1 - prog(t, 0, 0.9, E.out)) * 30}px)`;
   // window / phone in and out
-  const wIn = prog(t, CUTS[1] - 0.35, CUTS[1] + 0.55, E.out), wOut = prog(t, CUTS[8], CUTS[8] + 0.7);
+  const wIn = prog(t, CUTS[1] - 0.35, CUTS[1] + 0.55, E.out), wOut = prog(t, END, END + 0.7);
   const win = $('#win');
   win.style.opacity = wIn * (1 - wOut);
   win.style.transform = V ? `translateY(${(1 - wIn) * 160 + wOut * 80}px) scale(${1 - wOut * 0.06})`
@@ -197,13 +222,13 @@ window.renderAt = function(t){
     el.style.opacity = o; el.style.transform = `translateY(${(1 - prog(t, a + 0.05, a + 0.6, E.out)) * 26}px)`;
     stepEls[i].className = t >= a && t < b ? 'on' : t >= b ? 'done' : '';
   });
-  const chromeVis = win01(t, CUTS[1] - 0.2, CUTS[8] + 0.2, 0.4, 0.4);
+  const chromeVis = win01(t, CUTS[1] - 0.2, END + 0.2, 0.4, 0.4);
   $('#steps').style.opacity = chromeVis; $('.brand').style.opacity = chromeVis;
   // end card
-  const en = prog(t, CUTS[8] + 0.35, CUTS[8] + 1.2, E.out);
+  const en = prog(t, END + 0.35, END + 1.2, E.out);
   $('#end').style.opacity = en; $('#end').style.transform = `translateY(${(1 - en) * 30}px)`;
   // app
-  if (A && t > CUTS[1] - 0.5 && t < CUTS[8] + 0.8) applyApp(t);
+  if (A && t > CUTS[1] - 0.5 && t < END + 0.8) applyApp(t);
   applyCursor(t);
 };
 window.CUTS = CUTS;
